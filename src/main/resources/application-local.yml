@@ -1,0 +1,26 @@
+logging:
+  level:
+    org.springframework: DEBUG
+    org.springframework.web.client: TRACE
+    com.azure.spring.cloud.autoconfigure: DEBUG
+    org.opendevstack.projects_info_service.config: DEBUG
+    org.opendevstack.projects_info_service.server.controllers: DEBUG
+    org.opendevstack.projects_info_service.server.services: DEBUG
+    org.opendevstack.projects_info_service.server.annotations: DEBUG
+    org.opendevstack.projects_info_service.configuration: DEBUG
+
+custom:
+  cache:
+    specs:
+      userGroups:
+        ttl: 3600 # seconds (1 hour)
+        maxSize: 1000
+      userGroups-fallback:
+        ttl: 7200 # seconds (2 hour)
+        maxSize: 1000
+      userEmail:
+        ttl: 3600 # seconds (1 hour)
+        maxSize: 1000
+      userEmail-fallback:
+        ttl: 7200 # seconds (2 hour)
+        maxSize: 1000

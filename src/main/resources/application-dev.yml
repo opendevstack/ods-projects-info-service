@@ -1,0 +1,12 @@
+logging:
+  level:
+    org.springframework: INFO
+    org.springframework.web.client: DEBUG
+    com.azure.spring.cloud.autoconfigure: INFO
+    org.opendevstack.projects_info_service.config: INFO
+    org.opendevstack.projects_info_service.server.controllers: INFO
+    org.opendevstack.projects_info_service.server.service: DEBUG
+    org.opendevstack.projects_info_service.server.annotations: DEBUG
+    org.opendevstack.projects_info_service.server: DEBUG
+
+

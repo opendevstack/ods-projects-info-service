@@ -1,0 +1,158 @@
+logging:
+  level:
+    org.springframework: INFO
+    org.springframework.web.client: INFO
+    com.azure.spring.cloud.autoconfigure: TRACE
+    org.opendevstack.projects_info_service.config: TRACE
+    org.opendevstack.projects_info_service.server.controllers: TRACE
+    org.opendevstack.projects_info_service.server.services: TRACE
+
+server:
+  port: 8080
+spring:
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=10m
+
+  profiles.active: dev
+
+  cloud:
+    azure:
+      active-directory:
+        enabled: true
+        session-stateless: true
+        credential:
+          client-id: ${SPRING_CLOUD_AZURE_ACTIVE_DIRECTORY_CREDENTIAL_CLIENT_ID}
+        app-id-uri: ${SPRING_CLOUD_AZURE_ACTIVE_DIRECTORY_APP_ID_URI}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: openapi, swagger-ui, beans, caches, configprops, env, health, httpexchanges, info, loggers, mappings
+
+springdoc:
+  show-actuator: true
+  swagger-ui:
+    doc-expansion: none
+    try-it-out-enabled: true
+    filter: true
+    tags-sorter: alpha
+    operations-sorter: alpha
+
+project:
+  filter:
+    project-roles-group-prefix: BI-AS-ATLASSIAN-P
+    # Properties to be used as lists cannot have leading or trailing blanks.
+    project-roles-group-suffixes: TEAM,MANAGER,STAKEHOLDER
+
+azure:
+  access-token: ${AZURE_ACCESS_TOKEN}
+  datahub:
+    group-id: ${AZURE_DATA_HUB_GROUP_ID}
+  groups:
+    page-size: ${AZURE_GROUPS_PAGE_SIZE}
+
+testing-hub:
+  default:
+    projects: ${TESTING_HUB_DEFAULT_PROJECTS}
+  api:
+    url: ${TESTING_HUB_API_URL}
+    token: ${TESTING_HUB_API_TOKEN}
+    page-size: ${TESTING_HUB_API_PAGE_SIZE}
+
+mock:
+  clusters: ${MOCK_CLUSTERS}
+  projects:
+    default: ${MOCK_DEFAULT_PROJECTS}
+    users: ${MOCK_USER_PROJECTS}
+
+cluster:
+  mapper:
+    us-test: ${CLUSTER_MAPPER_US_TEST}
+    eu: ${CLUSTER_MAPPER_EU}
+    us: ${CLUSTER_MAPPER_US}
+    cn: ${CLUSTER_MAPPER_CN}
+    inh: ${CLUSTER_MAPPER_INH}
+
+custom:
+  cache:
+    specs:
+      userGroups:
+        ttl: ${CUSTOM_CACHE_TTL_SECONDS}
+        maxSize: ${CUSTOM_CACHE_MAXIMUM_SIZE}
+      userGroups-fallback:
+        ttl: ${CUSTOM_CACHE_FALLBACK_TTL_SECONDS}
+        maxSize: ${CUSTOM_CACHE_FALLBACK_MAXIMUM_SIZE}
+      userEmail:
+        ttl: ${CUSTOM_CACHE_TTL_SECONDS}
+        maxSize: ${CUSTOM_CACHE_MAXIMUM_SIZE}
+      userEmail-fallback:
+        ttl: ${CUSTOM_CACHE_FALLBACK_TTL_SECONDS}
+        maxSize: ${CUSTOM_CACHE_FALLBACK_MAXIMUM_SIZE}
+      allEdpProjects:
+        ttl: ${CUSTOM_CACHE_TTL_SECONDS}
+        maxSize: ${CUSTOM_CACHE_MAXIMUM_SIZE}
+      allEdpProjects-fallback:
+        ttl: ${CUSTOM_CACHE_FALLBACK_TTL_SECONDS}
+        maxSize: ${CUSTOM_CACHE_FALLBACK_MAXIMUM_SIZE}
+      projectsInfoCache:
+        ttl: ${CUSTOM_CACHE_TTL_SECONDS}
+        maxSize: ${CUSTOM_CACHE_MAXIMUM_SIZE}
+      projectsInfoCache-fallback:
+        ttl: ${CUSTOM_CACHE_FALLBACK_TTL_SECONDS}
+        maxSize: ${CUSTOM_CACHE_FALLBACK_MAXIMUM_SIZE}
+      openshiftProjects:
+        ttl: ${CUSTOM_CACHE_TTL_SECONDS}
+        maxSize: ${CUSTOM_CACHE_MAXIMUM_SIZE}
+      openshiftProjects-fallback:
+        ttl: ${CUSTOM_CACHE_FALLBACK_TTL_SECONDS}
+        maxSize: ${CUSTOM_CACHE_FALLBACK_MAXIMUM_SIZE}
+      dataHubGroups:
+        ttl: ${CUSTOM_CACHE_FALLBACK_TTL_SECONDS}
+        maxSize: ${CUSTOM_CACHE_FALLBACK_MAXIMUM_SIZE}
+      testingHubGroups:
+        ttl: ${CUSTOM_CACHE_FALLBACK_TTL_SECONDS}
+        maxSize: ${CUSTOM_CACHE_FALLBACK_MAXIMUM_SIZE}
+
+openshift:
+  api:
+    clusters:
+      us-test:
+        url: ${OPENSHIFT_US_TEST_URL}
+        token: ${OPENSHIFT_US_TEST_TOKEN}
+      eu-dev:
+        url: ${OPENSHIFT_EU_DEV_URL}
+        token: ${OPENSHIFT_EU_DEV_TOKEN}
+      us-dev:
+        url: ${OPENSHIFT_US_DEV_URL}
+        token: ${OPENSHIFT_US_DEV_TOKEN}
+      cn-dev:
+        url: ${OPENSHIFT_CN_DEV_URL}
+        token: ${OPENSHIFT_CN_DEV_TOKEN}
+      inh-dev:
+        url: ${OPENSHIFT_INH_DEV_URL}
+        token: ${OPENSHIFT_INH_DEV_TOKEN}
+    project:
+        url: /apis/project.openshift.io/v1/projects
+
+platforms:
+  bearer-token: ${PLATFORMS_BEARER_TOKEN}
+  base-path: ${PLATFORMS_BASE_PATH}
+  clusters:
+    us-test: ${PLATFORMS_US_TEST_CLUSTER}
+    eu-dev: ${PLATFORMS_EU_CLUSTER}
+    us-dev: ${PLATFORMS_US_CLUSTER}
+    cn-dev: ${PLATFORMS_CN_CLUSTER}
+    inh-dev: ${PLATFORMS_INH_CLUSTER}
+
+security:
+  group-validation:
+    allowed-prefixes:
+      - "BI-AS-ATLASSIAN"
+    allowed-suffixes:
+      - "STAKEHOLDER"
+      - "TEAM"
+      - "MANAGER"
+      - "VM"

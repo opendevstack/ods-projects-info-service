@@ -1,0 +1,217 @@
+buildscript {
+    ext {
+        springCloudAzureVersion = "5.23.0"
+        // set gradle properties regarding nexus
+        nexus_url = project.findProperty('nexus_url') ?: System.getenv('NEXUS_HOST')
+        nexus_user = project.findProperty('nexus_user') ?: System.getenv('NEXUS_USERNAME')
+        nexus_pw = project.findProperty('nexus_pw') ?: System.getenv('NEXUS_PASSWORD')
+        no_nexus = (project.findProperty('no_nexus') ?: System.getenv('NO_NEXUS') ?: false).toBoolean()
+        if (!no_nexus && (nexus_url == null || nexus_user == null || nexus_pw == null)) {
+            throw new GradleException("property 'no_nexus' is set to false, but neither " +
+                    "'nexus_url', 'nexus_user' nor 'nexus_pw' is configured. You can do so " +
+                    "by e.g. creating a gradle.properties file in your 'GRADLE_USER_HOME' " +
+                    "(by default '~/.gradle') folder and setting the nexus properties there.")
+        }
+        nexusFolderReleases = project.findProperty('nexus_folder_releases')
+                ?: System.getenv('NEXUS_FOLDER_RELEASES') ?: "maven-releases"
+        nexusFolderSnapshots = project.findProperty('nexus_folder_snapshots')
+                ?: System.getenv('NEXUS_FOLDER_SNAPSHOTS') ?: "maven-snapshots"
+    }
+}
+
+plugins {
+    id 'jacoco'
+    id 'maven-publish'
+    id 'java'
+    id 'org.springframework.boot' version '3.5.5'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id "com.gorylenko.gradle-git-properties" version "2.5.3" // Adds git info on /actuator/info endpoint
+    id "org.openapi.generator" version "7.10.0"
+}
+
+group = 'devstack'
+version = '0.0.1-SNAPSHOT'
+description = 'OpenDevStack Project to retrieve projects and azure groups for an authenticated user'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    if (!no_nexus) {
+        def nexusMaven = { repoUrl ->
+            println("Setting up Nexus (${repoUrl}) as repo")
+            maven {
+                credentials {
+                    username = "${nexus_user}"
+                    password = "${nexus_pw}"
+                }
+                url repoUrl
+            }
+        }
+        nexusMaven("${nexus_url}/repository/maven-public/")
+        nexusMaven("${nexus_url}/repository/atlassian_public/")
+    } else {
+        println("Setting up mavenCentral as repo")
+        mavenCentral()
+    }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "com.azure.spring:spring-cloud-azure-dependencies:$springCloudAzureVersion"
+    }
+}
+
+dependencies {
+    // Release dependencies
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+
+    implementation('com.azure.spring:spring-cloud-azure-starter-actuator') {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-autoconfigure'
+    }
+    implementation 'com.azure.spring:spring-cloud-azure-starter-active-directory'
+    implementation 'com.microsoft.graph:microsoft-graph:6.51.0'
+
+    implementation 'com.github.ben-manes.caffeine:caffeine:3.2.2'
+
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.11'
+    implementation 'org.openapitools:jackson-databind-nullable:0.2.7'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+
+
+    // Development dependencies
+    implementation 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    // Testing dependencies
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+
+    testRuntimeOnly 'me.paulschwarz:spring-dotenv:4.0.0' // Required to override environment variables from .env file in spring context tests
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+// Git properties to show on /actuator/info endpoint
+gitProperties {
+    keys = [
+            'git.branch',
+            'git.closest.tag.name',
+            'git.build.version',
+            'git.commit.message.full',
+            'git.commit.time',
+            'git.commit.id.abbrev',
+    ]
+}
+
+bootJar {
+    archiveFileName = "app.jar"
+    destinationDirectory = file("$buildDir/../docker")
+    // TODO Verify if this is the right approach - Download dependencies for SonarQube analysis
+    doLast {
+        configurations.runtimeClasspath.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+            copy {
+                from artifact.file
+                into 'build/dependencies'
+            }
+        }
+    }
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true
+    }
+}
+
+openApiGenerate {
+    generatorName = "spring"
+    outputDir = "$projectDir/target/generated-sources/openapi-server-projects-info-service"
+    inputSpec = "$projectDir/openapi/openapi-projects-info-service-v1.0.0.yaml"
+    library = "spring-boot"
+
+    globalProperties = [
+            generateAliasAsModel: "true",
+            apiDocs             : "true",
+            modelDocs           : "true",
+            apiTests            : "true",
+            modelTests          : "true"
+    ]
+
+    additionalProperties = [
+            useTags              : "true",
+            interfaceOnly        : "true",
+            groupId              : "projects-info-service",
+            artifactId           : "projects-info-service-v0-server",
+            artifactVersion      : "0.0.0-SNAPSHOT",
+            apiPackage           : "org.opendevstack.projects_info_service.server.api",
+            modelPackage         : "org.opendevstack.projects_info_service.server.dto",
+            configPackage        : "org.opendevstack.projects_info_service.config",
+            documentationProvider: "springdoc",
+            generateBuilders     : "true",
+            useSpringBoot3       : "true",
+            useSpringController  : "true",
+            useSwaggerUI         : "true",
+            hideGenerationTimestamp: "true"
+    ]
+}
+
+// Ensure code generation runs before Java compilation
+tasks.named("compileJava") {
+    dependsOn(tasks.named("openApiGenerate"))
+}
+
+tasks.named("clean").configure {
+    doLast {
+        delete("$projectDir/target")
+    }
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = [
+                    "src/main/java",
+                    "$projectDir/target/generated-sources/openapi-server-projects-info-service/src/main/java"
+            ]
+        }
+        resources {
+            srcDirs = ["src/main/resources"]
+        }
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            url = "${nexus_url}/repository/" + (version.endsWith('SNAPSHOT') ? nexusFolderSnapshots : nexusFolderReleases)
+
+            credentials {
+                username = "${nexus_user}"
+                password = "${nexus_pw}"
+            }
+
+        }
+    }
+    publications {
+        create("mavenJava", MavenPublication) {
+            artifactId = rootProject.name
+            groupId = project.group
+            version = project.version
+            from components.java
+        }
+    }
+}
