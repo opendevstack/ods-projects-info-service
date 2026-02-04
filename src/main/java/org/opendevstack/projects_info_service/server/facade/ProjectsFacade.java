@@ -10,7 +10,7 @@ import org.opendevstack.projects_info_service.server.dto.Section;
 import org.opendevstack.projects_info_service.server.model.PlatformsWithTitle;
 import org.opendevstack.projects_info_service.server.security.GroupValidatorService;
 import org.opendevstack.projects_info_service.server.service.EdpProjectsService;
-import org.opendevstack.projects_info_service.server.service.MockProjectsService;
+import org.opendevstack.projects_info_service.server.service.MocksService;
 import org.opendevstack.projects_info_service.server.service.OpenShiftProjectService;
 import org.opendevstack.projects_info_service.server.service.PlatformService;
 import jakarta.annotation.PostConstruct;
@@ -31,7 +31,7 @@ public class ProjectsFacade {
 
     private final EdpProjectsService edpProjectsService;
 
-    private final MockProjectsService mockProjectsService;
+    private final MocksService mocksService;
 
     private final PlatformService platformService;
 
@@ -44,14 +44,14 @@ public class ProjectsFacade {
     public ProjectsFacade(AzureGraphClient azureGraphClient,
                           OpenShiftProjectService openShiftProjectService,
                           EdpProjectsService edpProjectsService,
-                          MockProjectsService mockProjectsService,
+                          MocksService mocksService,
                           PlatformService platformService,
                           GroupValidatorService groupValidatorService,
                           ClusterConfiguration clusterConfiguration) {
         this.azureGraphClient = azureGraphClient;
         this.openShiftProjectService = openShiftProjectService;
         this.edpProjectsService = edpProjectsService;
-        this.mockProjectsService = mockProjectsService;
+        this.mocksService = mocksService;
         this.platformService = platformService;
         this.groupValidatorService = groupValidatorService;
         this.clusterConfiguration = clusterConfiguration;
@@ -85,7 +85,7 @@ public class ProjectsFacade {
         var edpProjects = edpProjectsService.filterProjects(azureUserGroups, allEdpProjectsInfo);
         log.info("EDP Projects found: {}", edpProjects);
 
-        var mockProjects = mockProjectsService.getProjectsAndClusters(userEmail);
+        var mockProjects = mocksService.getProjectsAndClusters(userEmail);
         log.info("Mock Projects found: {}", mockProjects);
 
         // Combine EDP projects and mock projects
@@ -122,7 +122,7 @@ public class ProjectsFacade {
 
     public ProjectPlatforms getProjectPlatforms(String projectKey) {
         var allEdpProjectsInfo = openShiftProjectService.fetchProjects();
-        var mockProjectsAndClusters = mockProjectsService.getDefaultProjectsAndClusters();
+        var mockProjectsAndClusters = mocksService.getDefaultProjectsAndClusters();
 
         var edProjectInfo = allEdpProjectsInfo.stream()
                 .filter(p -> p.getProject().equals(projectKey))

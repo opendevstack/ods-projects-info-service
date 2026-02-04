@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 @Slf4j
 @AllArgsConstructor
 @Service
-public class MockProjectsService {
+public class MocksService {
 
     private final MockConfiguration mockConfiguration;
 

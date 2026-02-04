@@ -3,7 +3,6 @@ package org.opendevstack.projects_info_service.server.facade;
 import org.opendevstack.projects_info_service.configuration.ClusterConfiguration;
 import org.opendevstack.projects_info_service.server.client.AzureGraphClient;
 import org.opendevstack.projects_info_service.server.dto.*;
-import org.opendevstack.projects_info_service.server.model.*;
 import org.opendevstack.projects_info_service.server.dto.ProjectInfoMother;
 import org.opendevstack.projects_info_service.server.dto.SectionMother;
 import org.opendevstack.projects_info_service.server.model.OpenshiftProjectCluster;
@@ -12,7 +11,7 @@ import org.opendevstack.projects_info_service.server.model.PlatformMother;
 import org.opendevstack.projects_info_service.server.model.PlatformsWithTitleMother;
 import org.opendevstack.projects_info_service.server.security.GroupValidatorService;
 import org.opendevstack.projects_info_service.server.service.EdpProjectsService;
-import org.opendevstack.projects_info_service.server.service.MockProjectsService;
+import org.opendevstack.projects_info_service.server.service.MocksService;
 import org.opendevstack.projects_info_service.server.service.OpenShiftProjectService;
 import org.opendevstack.projects_info_service.server.service.PlatformService;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,7 +42,7 @@ class ProjectsFacadeTest {
     private EdpProjectsService edpProjectsService;
 
     @Mock
-    private MockProjectsService mockProjectsService;
+    private MocksService mocksService;
 
     @Mock
     private ClusterConfiguration clusterConfiguration;
@@ -91,7 +90,7 @@ class ProjectsFacadeTest {
         when(openShiftProjectService.fetchProjects()).thenReturn(edpProjectsInfo);
         when(edpProjectsService.filterProjects(azureGroups, edpProjectsInfo))
                 .thenReturn(new HashSet<>(edpProjects));
-        when(mockProjectsService.getProjectsAndClusters(userEmail)).thenReturn(mockProjects);
+        when(mocksService.getProjectsAndClusters(userEmail)).thenReturn(mockProjects);
 
         // when
         Map<String, ProjectInfo> projects = projectsFacade.getProjects(accessToken);
@@ -123,7 +122,7 @@ class ProjectsFacadeTest {
         when(azureGraphClient.getUserGroups(accessToken)).thenReturn(azureGroups);
         when(openShiftProjectService.fetchProjects()).thenReturn(edpProjectsInfo);
         when(edpProjectsService.filterProjects(azureGroups, edpProjectsInfo)).thenReturn(new HashSet<>(edpProjects));
-        when(mockProjectsService.getProjectsAndClusters(userEmail)).thenReturn(Collections.emptyMap());
+        when(mocksService.getProjectsAndClusters(userEmail)).thenReturn(Collections.emptyMap());
 
         // when
         Map<String, ProjectInfo> projects = projectsFacade.getProjects(accessToken);
@@ -155,7 +154,7 @@ class ProjectsFacadeTest {
         when(azureGraphClient.getUserGroups(accessToken)).thenReturn(azureGroups);
         when(openShiftProjectService.fetchProjects()).thenReturn(edpProjectsInfo);
         when(edpProjectsService.filterProjects(azureGroups, edpProjectsInfo)).thenReturn(new HashSet<>(edpProjects));
-        when(mockProjectsService.getProjectsAndClusters(userEmail)).thenReturn(Map.of("ATLAS", new ProjectInfo("ATLAS", List.of("us-test"))));
+        when(mocksService.getProjectsAndClusters(userEmail)).thenReturn(Map.of("ATLAS", new ProjectInfo("ATLAS", List.of("us-test"))));
 
         // when
         Map<String, ProjectInfo> projects = projectsFacade.getProjects(accessToken);
@@ -242,7 +241,7 @@ class ProjectsFacadeTest {
         var expectedSections = List.of(expectedSection);
 
         when(openShiftProjectService.fetchProjects()).thenReturn(projectClusters);
-        when(mockProjectsService.getDefaultProjectsAndClusters()).thenReturn(Map.of(projectKey, projectInfo));
+        when(mocksService.getDefaultProjectsAndClusters()).thenReturn(Map.of(projectKey, projectInfo));
 
         when(platformService.getDisabledPlatforms(projectKey)).thenReturn(disabledPlatforms);
         when(platformService.getSections(projectKey, projectInfo.getClusters().getFirst())).thenReturn(expectedSections);
@@ -278,7 +277,7 @@ class ProjectsFacadeTest {
         List<OpenshiftProjectCluster> projectClusters = List.of(openshiftProjectCluster);
 
         when(openShiftProjectService.fetchProjects()).thenReturn(projectClusters);
-        when(mockProjectsService.getDefaultProjectsAndClusters()).thenReturn(Map.of(projectKey, projectInfo));
+        when(mocksService.getDefaultProjectsAndClusters()).thenReturn(Map.of(projectKey, projectInfo));
 
         when(platformService.getDisabledPlatforms(projectKey)).thenReturn(disabledPlatforms);
         when(platformService.getSections(projectKey, cluster)).thenReturn(expectedSections);
