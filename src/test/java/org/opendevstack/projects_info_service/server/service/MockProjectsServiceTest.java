@@ -49,4 +49,25 @@ class MockProjectsServiceTest {
         // Then
         assertThat(projects).isEmpty();
     }
+
+    @Test
+    void givenAMockConfiguredGroups_whenGetGroups_ThenReturnExpectedGroups() {
+        // given
+        var userEmail = "user@example.com";
+
+        MockConfiguration mockConfiguration = new MockConfiguration();
+
+        mockConfiguration.setClusters(List.of("US-TEST", "eu", "CN"));
+        mockConfiguration.setDefaultProjects(List.of("DEFAULT1", "DEFAULT2:cn"));
+        mockConfiguration.setUsersProjects("{PEPE:[PROJECT-3, PROJECT-4:US-TEST]; PPT:[PROJECT-3, PROJECT-5]}");
+        mockConfiguration.setUsersGroups("{" + userEmail + ":[GROUP-1, BI-AS-ATLASSIAN-P-DEVSTACK-TEAM]; PPT:[BI-AS-ATLASSIAN-P-DEVSTACK-STAKEHOLDER]}");
+
+
+        MockProjectsService mockProjectsService = new MockProjectsService(mockConfiguration);
+        // when
+        var userGroups = mockProjectsService.getUserGroups(userEmail);
+
+        // then
+        assertThat(userGroups).containsExactlyInAnyOrder("GROUP-1", "BI-AS-ATLASSIAN-P-DEVSTACK-TEAM");
+    }
 }
