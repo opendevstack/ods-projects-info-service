@@ -8,7 +8,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 
-class MockProjectsServiceTest {
+class MocksServiceTest {
 
     @Test
     void givenAMockConfiguration_whenGetProjectsAndClusters_thenReturnExpectedProjects() {
@@ -20,10 +20,10 @@ class MockProjectsServiceTest {
 
         var userEmail = "PEPE";
 
-        MockProjectsService mockProjectsService = new MockProjectsService(mockConfiguration);
+        MocksService mocksService = new MocksService(mockConfiguration);
 
         // when
-        var projects = mockProjectsService.getProjectsAndClusters(userEmail);
+        var projects = mocksService.getProjectsAndClusters(userEmail);
 
         // then
         assertThat(projects.size()).isEqualTo(4);
@@ -41,12 +41,33 @@ class MockProjectsServiceTest {
 
         var userEmail = "user@example.com";
 
-        MockProjectsService mockProjectsService = new MockProjectsService(mockConfiguration);
+        MocksService mocksService = new MocksService(mockConfiguration);
 
         // When
-        var projects = mockProjectsService.getProjectsAndClusters(userEmail);
+        var projects = mocksService.getProjectsAndClusters(userEmail);
 
         // Then
         assertThat(projects).isEmpty();
+    }
+
+    @Test
+    void givenAMockConfiguredGroups_whenGetGroups_ThenReturnExpectedGroups() {
+        // given
+        var userEmail = "user@example.com";
+
+        MockConfiguration mockConfiguration = new MockConfiguration();
+
+        mockConfiguration.setClusters(List.of("US-TEST", "eu", "CN"));
+        mockConfiguration.setDefaultProjects(List.of("DEFAULT1", "DEFAULT2:cn"));
+        mockConfiguration.setUsersProjects("{PEPE:[PROJECT-3, PROJECT-4:US-TEST]; PPT:[PROJECT-3, PROJECT-5]}");
+        mockConfiguration.setUsersGroups("{" + userEmail + ":[GROUP-1, BI-AS-ATLASSIAN-P-DEVSTACK-TEAM]; PPT:[BI-AS-ATLASSIAN-P-DEVSTACK-STAKEHOLDER]}");
+
+
+        MocksService mocksService = new MocksService(mockConfiguration);
+        // when
+        var userGroups = mocksService.getUserGroups(userEmail);
+
+        // then
+        assertThat(userGroups).containsExactlyInAnyOrder("GROUP-1", "BI-AS-ATLASSIAN-P-DEVSTACK-TEAM");
     }
 }

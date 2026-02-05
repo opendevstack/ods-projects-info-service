@@ -20,4 +20,7 @@ public class MockConfiguration {
 
     @Value("${mock.projects.users}")
     private String usersProjects;
+
+    @Value("${mock.groups.users}")
+    private String usersGroups;
 }

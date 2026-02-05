@@ -7,6 +7,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.opendevstack.projects_info_service.server.service.MocksService;
 import org.springframework.http.HttpStatusCode;
 
 import java.util.HashSet;
@@ -22,15 +23,21 @@ class AzureGroupsApiControllerTest {
     @Mock
     private AzureGraphClient azureGraphClient;
 
+    @Mock
+    private MocksService mocksService;
+
     @InjectMocks
     private AzureGroupsApiController azureGroupsApiController;
 
     @Test
     void givenAnAzureToken_whenGetAzureGroups_thenReturnListOfGroups() {
         // given
+        var userEmail = "user@example.com";
         var accessToken = "sampleToken";
 
+        when(azureGraphClient.getUserEmail(accessToken)).thenReturn(userEmail);
         when(azureGraphClient.getUserGroups(accessToken)).thenReturn(new HashSet<>(List.of("group1", "group2", "group3")));
+        when(mocksService.getUserGroups(userEmail)).thenReturn(new HashSet<>(List.of("mock-group1", "mock-group2")));
 
         // when
         var groups = azureGroupsApiController.getAzureGroups(accessToken);
@@ -39,7 +46,7 @@ class AzureGroupsApiControllerTest {
         assertThat(groups.getStatusCode()).isEqualTo(HttpStatusCode.valueOf(200));
 
         assertThat(groups.getBody()).isNotEmpty();
-        assertThat(groups.getBody()).contains("group1", "group2", "group3");
+        assertThat(groups.getBody()).contains("group1", "group2", "mock-group1", "group3",  "mock-group2");
     }
 
     @Test

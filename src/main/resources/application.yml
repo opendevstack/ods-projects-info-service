@@ -67,6 +67,8 @@ mock:
   projects:
     default: ${MOCK_DEFAULT_PROJECTS}
     users: ${MOCK_USER_PROJECTS}
+  groups:
+    users: ${MOCK_USER_GROUPS}
 
 cluster:
   mapper:

@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 @Slf4j
 @AllArgsConstructor
 @Service
-public class MockProjectsService {
+public class MocksService {
 
     private final MockConfiguration mockConfiguration;
 
@@ -33,6 +33,14 @@ public class MockProjectsService {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
+    public Set<String> getUserGroups(String userEmail) {
+        var userGroups = getUserConfigurations(userEmail, mockConfiguration.getUsersGroups());
+
+        log.debug("Returning user Groups {}, for email {}", userGroups, userEmail);
+
+        return userGroups;
+    }
+
     private Map<String, ProjectInfo> getUserProjectsAndClusters(String userEmail) {
         return getUserProjects(userEmail).stream()
                 .map(this::extractProjectAndCluster)
@@ -40,33 +48,45 @@ public class MockProjectsService {
     }
 
     private Set<String> getUserProjects(String userEmail) {
-        var projectsByUsers = mockConfiguration.getUsersProjects().replace("{", "")
+        var userProjects = getUserConfigurations(userEmail, mockConfiguration.getUsersProjects());
+
+        log.debug("Returning user Projects {}, for email {}", userProjects, userEmail);
+
+        return userProjects;
+    }
+
+    private Set<String> getUserConfigurations(String userEmail, String userConfiguration) {
+        var configurationByUsers = userConfiguration.replace("{", "")
                 .replace("}", "")
                 .split(";");
 
-        var userConfigurations = Stream.of(projectsByUsers)
+        var userConfigurationsGroupedByEmail = Stream.of(configurationByUsers)
                 .map(String::trim)
                 .filter(s -> s.startsWith(userEmail))
                 .map(s -> s.replace(userEmail + ":", "").trim())
                 .toList();
 
-        return userConfigurations.stream()
-                .map(this::getSingleUserProjects)
+        var userConfigurations = userConfigurationsGroupedByEmail.stream()
+                .map(this::getSingleUserConfiguration)
                 .flatMap(Set::stream)
                 .collect(Collectors.toSet());
+
+        log.trace("Returning user Configurations {}, for email {}", userConfigurations, userEmail);
+
+        return userConfigurations;
     }
 
-    private Set<String> getSingleUserProjects(String userProjects) {
-        if (userProjects.equals("[]")) {
+    private Set<String> getSingleUserConfiguration(String userConfiguration) {
+        if (userConfiguration.equals("[]")) {
             return Collections.emptySet();
         } else {
-            if (!userProjects.startsWith("[") || !userProjects.endsWith("]")) {
-                log.error("User projects string is not well formatted: {}", userProjects);
+            if (!userConfiguration.startsWith("[") || !userConfiguration.endsWith("]")) {
+                log.error("User projects string is not well formatted: {}", userConfiguration);
 
-                throw new InvalidContentProcessException("User projects string is not well formatted: " + userProjects);
+                throw new InvalidContentProcessException("User projects string is not well formatted: " + userConfiguration);
             }
 
-            var projects = userProjects.substring(userProjects.indexOf("[") + 1, userProjects.indexOf("]"))
+            var projects = userConfiguration.substring(userConfiguration.indexOf("[") + 1, userConfiguration.indexOf("]"))
                     .split(",");
 
             return Stream.of(projects)
@@ -77,6 +97,9 @@ public class MockProjectsService {
         }
     }
 
+    // Configuration is the same for Project and Group, when project has no cluster.
+    // Ideally we would have a better method name, but considering the time constraints we have, and the big refactor
+    // we are going to asume this name conflict for groups extraction.
     private Map.Entry<String, ProjectInfo> extractProjectAndCluster(String projectWithCluster) {
         if (projectWithCluster.contains(":")) {
             var parts = projectWithCluster.split(":");
