@@ -2,6 +2,7 @@ package org.opendevstack.projects_info_service.server.facade;
 
 import org.opendevstack.projects_info_service.configuration.ClusterConfiguration;
 import org.opendevstack.projects_info_service.server.client.AzureGraphClient;
+import org.opendevstack.projects_info_service.server.client.ProjectWhitelistYmlClient;
 import org.opendevstack.projects_info_service.server.dto.*;
 import org.opendevstack.projects_info_service.server.dto.ProjectInfoMother;
 import org.opendevstack.projects_info_service.server.dto.SectionMother;
@@ -52,6 +53,9 @@ class ProjectsFacadeTest {
 
     @Mock
     private GroupValidatorService groupValidatorService;
+
+    @Mock
+    private ProjectWhitelistYmlClient projectWhitelistYmlClient;
 
     @InjectMocks
     private ProjectsFacade projectsFacade;

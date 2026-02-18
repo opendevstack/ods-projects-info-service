@@ -149,6 +149,11 @@ platforms:
     cn-dev: ${PLATFORMS_CN_CLUSTER}
     inh-dev: ${PLATFORMS_INH_CLUSTER}
 
+projects:
+  whitelist:
+    configuration:
+      url: ${PROJECTS_WHITELIST_CONFIGURATION_URL}
+
 security:
   group-validation:
     allowed-prefixes:
