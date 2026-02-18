@@ -304,10 +304,6 @@ class ProjectsFacadeTest {
         assertThat(sections.get(1)).isEqualTo(expectedSection);
     }
 
-    // ------------------------------
-    // New tests for whitelist behavior
-    // ------------------------------
-
     @Test
     void givenWhitelist_whenGetProjects_thenOnlyWhitelistedProjectsAreReturned() {
         // given
