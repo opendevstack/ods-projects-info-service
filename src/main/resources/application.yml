@@ -139,8 +139,11 @@ openshift:
     project:
         url: /apis/project.openshift.io/v1/projects
 
+configuration:
+  repository:
+    bearer-token: ${PLATFORMS_BEARER_TOKEN}
+
 platforms:
-  bearer-token: ${PLATFORMS_BEARER_TOKEN}
   base-path: ${PLATFORMS_BASE_PATH}
   clusters:
     us-test: ${PLATFORMS_US_TEST_CLUSTER}
