@@ -196,10 +196,10 @@ public class ProjectsFacade {
         var projectWhitelistedConfiguration = projectWhitelistYmlClient.fetch();
 
         if (projectWhitelistedConfiguration != null
-                && projectWhitelistedConfiguration.getWhitelisted() != null
-                && !projectWhitelistedConfiguration.getWhitelisted().isEmpty()) {
-            log.debug("Whitelisted configuration found: {}. Cleaning results.", projectWhitelistedConfiguration.getWhitelisted());
-            result.keySet().retainAll(projectWhitelistedConfiguration.getWhitelisted());
+                && projectWhitelistedConfiguration.getProjects().getWhitelisted() != null
+                && !projectWhitelistedConfiguration.getProjects().getWhitelisted().isEmpty()) {
+            log.debug("Whitelisted configuration found: {}. Cleaning results.", projectWhitelistedConfiguration.getProjects().getWhitelisted());
+            result.keySet().retainAll(projectWhitelistedConfiguration.getProjects().getWhitelisted());
         }
 
         return result;
