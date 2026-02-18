@@ -10,6 +10,7 @@ import org.opendevstack.projects_info_service.server.model.OpenshiftProjectClust
 import org.opendevstack.projects_info_service.server.model.OpenshiftProjectClusterMother;
 import org.opendevstack.projects_info_service.server.model.PlatformMother;
 import org.opendevstack.projects_info_service.server.model.PlatformsWithTitleMother;
+import org.opendevstack.projects_info_service.server.model.ProjectsWhitelisted;
 import org.opendevstack.projects_info_service.server.security.GroupValidatorService;
 import org.opendevstack.projects_info_service.server.service.EdpProjectsService;
 import org.opendevstack.projects_info_service.server.service.MocksService;
@@ -27,7 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -62,8 +63,8 @@ class ProjectsFacadeTest {
 
     @BeforeEach
     void setUp() {
-        Map<String, String> clusterConfigurationMapper;
-        clusterConfigurationMapper = Map.of(
+        // given
+        Map<String, String> clusterConfigurationMapper = Map.of(
                 "US_TEST", "us-test",
                 "US", "us-dev, us-aws-east1",
                 "EU", "eu-dev, eu-aws-west1, Europe"
@@ -71,6 +72,7 @@ class ProjectsFacadeTest {
 
         when(clusterConfiguration.getMapper()).thenReturn(clusterConfigurationMapper);
 
+        // when
         projectsFacade.initializeClusterMapper();
     }
 
@@ -136,7 +138,7 @@ class ProjectsFacadeTest {
         assertThat(projects.keySet()).hasSize(2)
                 .containsExactly("ATLAS", "ZHOR");
         assertThat(projects.get("ATLAS").getClusters()).isNotNull()
-            .containsExactly("EU", "US");
+                .containsExactly("EU", "US");
     }
 
     @Test
@@ -300,5 +302,105 @@ class ProjectsFacadeTest {
 
         assertThat(sections.get(0).getSection()).isEqualTo("Simple title");
         assertThat(sections.get(1)).isEqualTo(expectedSection);
+    }
+
+    // ------------------------------
+    // New tests for whitelist behavior
+    // ------------------------------
+
+    @Test
+    void givenWhitelist_whenGetProjects_thenOnlyWhitelistedProjectsAreReturned() {
+        // given
+        var userEmail = "pepito";
+        var accessToken = "sample";
+        var azureGroups = new HashSet<>(List.of("g1", "g2"));
+        var edpProjectsInfo = List.of(
+                new OpenshiftProjectCluster("edpc","eu_dev"),
+                new OpenshiftProjectCluster("devstack","us_test")
+        );
+
+        var edpProjects = List.of(
+                new ProjectInfo("ATLAS", Collections.emptyList()),
+                new ProjectInfo("EDPP", Collections.emptyList())
+        );
+        var mockProjectKey = "MockProject";
+        var mockProjects = Map.of(mockProjectKey, new ProjectInfo(mockProjectKey, Collections.emptyList()));
+
+        when(azureGraphClient.getUserEmail(accessToken)).thenReturn(userEmail);
+        when(azureGraphClient.getUserGroups(accessToken)).thenReturn(azureGroups);
+        when(openShiftProjectService.fetchProjects()).thenReturn(edpProjectsInfo);
+        when(edpProjectsService.filterProjects(azureGroups, edpProjectsInfo)).thenReturn(new HashSet<>(edpProjects));
+        when(mocksService.getProjectsAndClusters(userEmail)).thenReturn(mockProjects);
+
+        // whitelist allowing only ATLAS and the mock project
+        var projectsNode = new ProjectsWhitelisted.Projects();
+        projectsNode.setWhitelisted(List.of("ATLAS", mockProjectKey));
+        var whitelist = new ProjectsWhitelisted();
+        whitelist.setProjects(projectsNode);
+        when(projectWhitelistYmlClient.fetch()).thenReturn(whitelist);
+
+        // when
+        Map<String, ProjectInfo> projects = projectsFacade.getProjects(accessToken);
+
+        // then
+        assertThat(projects).isNotNull();
+        assertThat(projects.keySet()).containsExactlyInAnyOrder("ATLAS", mockProjectKey);
+    }
+
+    @Test
+    void givenEmptyWhitelist_whenGetProjects_thenAllProjectsRemainUnfiltered() {
+        // given
+        var userEmail = "pepito";
+        var accessToken = "token";
+        var azureGroups = new HashSet<>(List.of("g1"));
+        var edpProjectsInfo = List.of(new OpenshiftProjectCluster("p", "eu_dev"));
+        var edpProjects = List.of(
+                new ProjectInfo("A", Collections.emptyList()),
+                new ProjectInfo("B", Collections.emptyList())
+        );
+        var mockProjects = Map.of("C", new ProjectInfo("C", Collections.emptyList()));
+
+        when(azureGraphClient.getUserEmail(accessToken)).thenReturn(userEmail);
+        when(azureGraphClient.getUserGroups(accessToken)).thenReturn(azureGroups);
+        when(openShiftProjectService.fetchProjects()).thenReturn(edpProjectsInfo);
+        when(edpProjectsService.filterProjects(azureGroups, edpProjectsInfo)).thenReturn(new HashSet<>(edpProjects));
+        when(mocksService.getProjectsAndClusters(userEmail)).thenReturn(mockProjects);
+
+        // empty whitelist -> no filtering applied
+        var projectsNode = new ProjectsWhitelisted.Projects();
+        projectsNode.setWhitelisted(Collections.emptyList());
+        var whitelist = new ProjectsWhitelisted();
+        whitelist.setProjects(projectsNode);
+        when(projectWhitelistYmlClient.fetch()).thenReturn(whitelist);
+
+        // when
+        Map<String, ProjectInfo> projects = projectsFacade.getProjects(accessToken);
+
+        // then
+        assertThat(projects.keySet()).containsExactlyInAnyOrder("A", "B", "C");
+    }
+
+    @Test
+    void givenUnknownClusterInProjects_whenGetProjects_thenThrowsIllegalArgumentException() {
+        // given
+        var accessToken = "token";
+        var userEmail = "user@example.com";
+        var azureGroups = new HashSet<>(List.of("g1"));
+
+        var edpProjectsInfo = List.of(new OpenshiftProjectCluster("any", "eu_dev"));
+
+        // One project has an unknown cluster that is NOT in the mapper
+        var edpProjects = List.of(new ProjectInfo("BAD", List.of("unknown-cluster")));
+
+        when(azureGraphClient.getUserEmail(accessToken)).thenReturn(userEmail);
+        when(azureGraphClient.getUserGroups(accessToken)).thenReturn(azureGroups);
+        when(openShiftProjectService.fetchProjects()).thenReturn(edpProjectsInfo);
+        when(edpProjectsService.filterProjects(azureGroups, edpProjectsInfo)).thenReturn(new HashSet<>(edpProjects));
+        when(mocksService.getProjectsAndClusters(userEmail)).thenReturn(Collections.emptyMap());
+
+        // when // then
+        assertThatThrownBy(() -> projectsFacade.getProjects(accessToken))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("is not recognized");
     }
 }
