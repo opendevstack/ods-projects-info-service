@@ -80,16 +80,26 @@ public class AzureGraphClient {
         return groupIds;
     }
 
-    // TODO: Can not use short circuit at the moment, we will do it when integration is completed
     @Cacheable("dataHubGroups")
     public Set<String> getDataHubGroups() {
-        return getApplicationGroups(azureAccessToken, dataHubGroupId);
+        try {
+            return getApplicationGroups(azureAccessToken, dataHubGroupId);
+        } catch (UnableToReachAzureException e) {
+            log.error(ERROR_WHILE_GETTING_APPLICATION_GROUPS, e);
+
+            return Collections.emptySet();
+        }
     }
 
-    // TODO: Can not use short circuit at the moment, we will do it when integration is completed
     @Cacheable("testingHubGroups")
     public Set<String> getTestingHubGroups() {
-        return getApplicationGroups(azureAccessToken, dataHubGroupId);
+        try {
+            return getApplicationGroups(azureAccessToken, dataHubGroupId);
+        } catch (UnableToReachAzureException e) {
+            log.error(ERROR_WHILE_GETTING_APPLICATION_GROUPS, e);
+
+            return Collections.emptySet();
+        }
     }
 
     protected Set<String> getApplicationGroups(String accessToken, String appObjectId) {
