@@ -117,6 +117,9 @@ custom:
       testingHubGroups:
         ttl: ${CUSTOM_CACHE_FALLBACK_TTL_SECONDS}
         maxSize: ${CUSTOM_CACHE_FALLBACK_MAXIMUM_SIZE}
+      projectsWhitelisted:
+        ttl: ${CUSTOM_CACHE_FALLBACK_TTL_SECONDS}
+        maxSize: ${CUSTOM_CACHE_FALLBACK_MAXIMUM_SIZE}
 
 openshift:
   api:

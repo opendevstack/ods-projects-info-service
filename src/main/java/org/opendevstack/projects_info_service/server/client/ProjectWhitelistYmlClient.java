@@ -20,7 +20,7 @@ public class ProjectWhitelistYmlClient {
     }
 
     @SneakyThrows
-    @Cacheable("Projects-Whitelisted")
+    @Cacheable("projectsWhitelisted")
     public ProjectsWhitelisted fetch() {
         return simpleConfigurationYmlClient.fetch(projectWhitelistConfigurationUrl,  ProjectsWhitelisted.class);
     }
