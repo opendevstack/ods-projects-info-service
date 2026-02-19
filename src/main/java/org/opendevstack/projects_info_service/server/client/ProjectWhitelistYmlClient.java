@@ -4,6 +4,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.opendevstack.projects_info_service.server.model.ProjectsWhitelisted;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -19,6 +20,7 @@ public class ProjectWhitelistYmlClient {
     }
 
     @SneakyThrows
+    @Cacheable("Projects-Whitelisted")
     public ProjectsWhitelisted fetch() {
         return simpleConfigurationYmlClient.fetch(projectWhitelistConfigurationUrl,  ProjectsWhitelisted.class);
     }
