@@ -3,6 +3,7 @@ package org.opendevstack.projects_info_service.server.facade;
 import org.opendevstack.projects_info_service.configuration.ClusterConfiguration;
 import org.opendevstack.projects_info_service.server.annotations.CacheableWithFallback;
 import org.opendevstack.projects_info_service.server.client.AzureGraphClient;
+import org.opendevstack.projects_info_service.server.client.ProjectWhitelistYmlClient;
 import org.opendevstack.projects_info_service.server.dto.Link;
 import org.opendevstack.projects_info_service.server.dto.ProjectInfo;
 import org.opendevstack.projects_info_service.server.dto.ProjectPlatforms;
@@ -41,13 +42,16 @@ public class ProjectsFacade {
 
     private Map<String, String> clusterMapper;
 
+    private final ProjectWhitelistYmlClient  projectWhitelistYmlClient;
+
     public ProjectsFacade(AzureGraphClient azureGraphClient,
                           OpenShiftProjectService openShiftProjectService,
                           EdpProjectsService edpProjectsService,
                           MocksService mocksService,
                           PlatformService platformService,
                           GroupValidatorService groupValidatorService,
-                          ClusterConfiguration clusterConfiguration) {
+                          ClusterConfiguration clusterConfiguration,
+                          ProjectWhitelistYmlClient projectWhitelistYmlClient) {
         this.azureGraphClient = azureGraphClient;
         this.openShiftProjectService = openShiftProjectService;
         this.edpProjectsService = edpProjectsService;
@@ -55,6 +59,7 @@ public class ProjectsFacade {
         this.platformService = platformService;
         this.groupValidatorService = groupValidatorService;
         this.clusterConfiguration = clusterConfiguration;
+        this.projectWhitelistYmlClient = projectWhitelistYmlClient;
     }
 
     @PostConstruct
@@ -187,6 +192,15 @@ public class ProjectsFacade {
         Map<String, ProjectInfo> result = new TreeMap<>(); // Using treeMap so the result is sorted by project key
 
         projectInfoMap.forEach((key, value) -> result.put(key, new ProjectInfo(key, sanitizeClusters(value.getClusters()))));
+
+        var projectWhitelistedConfiguration = projectWhitelistYmlClient.fetch();
+
+        if (projectWhitelistedConfiguration != null
+                && projectWhitelistedConfiguration.getProjects().getWhitelisted() != null
+                && !projectWhitelistedConfiguration.getProjects().getWhitelisted().isEmpty()) {
+            log.debug("Whitelisted configuration found: {}. Cleaning results.", projectWhitelistedConfiguration.getProjects().getWhitelisted());
+            result.keySet().retainAll(projectWhitelistedConfiguration.getProjects().getWhitelisted());
+        }
 
         return result;
     }

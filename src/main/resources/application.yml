@@ -139,8 +139,11 @@ openshift:
     project:
         url: /apis/project.openshift.io/v1/projects
 
+configuration:
+  repository:
+    bearer-token: ${PLATFORMS_BEARER_TOKEN}
+
 platforms:
-  bearer-token: ${PLATFORMS_BEARER_TOKEN}
   base-path: ${PLATFORMS_BASE_PATH}
   clusters:
     us-test: ${PLATFORMS_US_TEST_CLUSTER}
@@ -148,6 +151,11 @@ platforms:
     us-dev: ${PLATFORMS_US_CLUSTER}
     cn-dev: ${PLATFORMS_CN_CLUSTER}
     inh-dev: ${PLATFORMS_INH_CLUSTER}
+
+projects:
+  whitelist:
+    configuration:
+      url: ${PROJECTS_WHITELIST_CONFIGURATION_URL}
 
 security:
   group-validation:
