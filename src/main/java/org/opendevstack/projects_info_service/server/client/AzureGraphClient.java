@@ -29,6 +29,8 @@ public class AzureGraphClient {
     public static final String ERROR_WHILE_PROCESSING_SERVER_RESPONSE = "Error while processing server response";
     public static final String ERROR_WHILE_GETTING_APPLICATION_GROUPS = "Error while getting application groups";
 
+    public static final String UNABLE_TO_GET_GROUPS_FALLBACK_GROUP = "Unable-to-get-groups";
+
     private final RestTemplate restTemplate;
     private final ObjectMapper mapper;
 
@@ -41,9 +43,9 @@ public class AzureGraphClient {
     @Value("${azure.datahub.group-id}")
     private String dataHubGroupId;
 
-    AzureGraphClient(RestTemplate restTemplate) {
+    AzureGraphClient(RestTemplate restTemplate, ObjectMapper mapper) {
         this.restTemplate = restTemplate;
-        this.mapper = new ObjectMapper();
+        this.mapper = mapper;
     }
 
     public Set<String> getUserGroups(String userAccessToken) {
@@ -87,18 +89,7 @@ public class AzureGraphClient {
         } catch (UnableToReachAzureException e) {
             log.error(ERROR_WHILE_GETTING_APPLICATION_GROUPS, e);
 
-            return Collections.emptySet();
-        }
-    }
-
-    @Cacheable("testingHubGroups")
-    public Set<String> getTestingHubGroups() {
-        try {
-            return getApplicationGroups(azureAccessToken, dataHubGroupId);
-        } catch (UnableToReachAzureException e) {
-            log.error(ERROR_WHILE_GETTING_APPLICATION_GROUPS, e);
-
-            return Collections.emptySet();
+            return Set.of(UNABLE_TO_GET_GROUPS_FALLBACK_GROUP);
         }
     }
 
