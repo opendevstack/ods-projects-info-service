@@ -123,6 +123,9 @@ custom:
       platformsConfigurationCache:
         ttl: ${CUSTOM_CACHE_FALLBACK_TTL_SECONDS}
         maxSize: ${CUSTOM_CACHE_FALLBACK_MAXIMUM_SIZE}
+      sectionsConfigurationCache:
+        ttl: ${CUSTOM_CACHE_FALLBACK_TTL_SECONDS}
+        maxSize: ${CUSTOM_CACHE_FALLBACK_MAXIMUM_SIZE}
 
 openshift:
   api:

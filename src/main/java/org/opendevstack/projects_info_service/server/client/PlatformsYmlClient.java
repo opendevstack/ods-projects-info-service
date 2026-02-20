@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
-import org.opendevstack.projects_info_service.configuration.ConfigurationRepositoryConfiguration;
 import org.opendevstack.projects_info_service.server.model.Platform;
 import org.opendevstack.projects_info_service.server.model.PlatformSection;
 import org.opendevstack.projects_info_service.server.model.PlatformsYml;
@@ -21,6 +20,7 @@ public class PlatformsYmlClient {
     private final SimpleConfigurationYmlClient simpleConfigurationYmlClient;
 
     @SneakyThrows
+    @Cacheable("sectionsConfigurationCache")
     public List<PlatformSection> fetchSectionsFromYaml(String url) {
         var root = simpleConfigurationYmlClient.fetch(url, PlatformsYml.class);
 
