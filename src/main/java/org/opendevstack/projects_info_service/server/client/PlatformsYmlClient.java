@@ -8,6 +8,7 @@ import org.opendevstack.projects_info_service.configuration.ConfigurationReposit
 import org.opendevstack.projects_info_service.server.model.Platform;
 import org.opendevstack.projects_info_service.server.model.PlatformSection;
 import org.opendevstack.projects_info_service.server.model.PlatformsYml;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,6 +28,7 @@ public class PlatformsYmlClient {
     }
 
     @SneakyThrows
+    @Cacheable("platformsConfigurationCache")
     public Pair<String, List<Platform>> fetchPlatformsFromYaml(String url) {
         var root = simpleConfigurationYmlClient.fetch(url, PlatformsYml.class);
 
