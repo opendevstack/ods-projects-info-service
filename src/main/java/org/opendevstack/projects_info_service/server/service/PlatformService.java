@@ -1,5 +1,7 @@
 package org.opendevstack.projects_info_service.server.service;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.opendevstack.projects_info_service.configuration.PlatformsConfiguration;
 import org.opendevstack.projects_info_service.configuration.ProjectFilterConfiguration;
 import org.opendevstack.projects_info_service.server.client.AzureGraphClient;
@@ -8,18 +10,22 @@ import org.opendevstack.projects_info_service.server.client.TestingHubClient;
 import org.opendevstack.projects_info_service.server.dto.Link;
 import org.opendevstack.projects_info_service.server.dto.Section;
 import org.opendevstack.projects_info_service.server.exception.InvalidConfigurationException;
-import org.opendevstack.projects_info_service.server.exception.UnableToReachAzureException;
 import org.opendevstack.projects_info_service.server.model.Platform;
 import org.opendevstack.projects_info_service.server.model.PlatformSection;
 import org.opendevstack.projects_info_service.server.model.PlatformsWithTitle;
 import org.opendevstack.projects_info_service.server.model.TestingHubProject;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static org.opendevstack.projects_info_service.server.client.AzureGraphClient.UNABLE_TO_GET_GROUPS_FALLBACK_GROUP;
 
 @Slf4j
 @AllArgsConstructor
@@ -110,20 +116,20 @@ public class PlatformService {
     private List<String> addDisabledPlatformIfDataHubIsDisabled(String projectKey) {
         List<String> disabledPlatforms = new ArrayList<>();
 
-        try {
-            var dataHubGroups = azureGraphClient.getDataHubGroups();
+        // FIXME: As we know we do not have configured yet Azure Token, we default to fallback group
+        // This should be updated in the future (uncomment line below) when the token is set
+        //var dataHubGroups = azureGraphClient.getDataHubGroups();
+        var dataHubGroups = Set.of(UNABLE_TO_GET_GROUPS_FALLBACK_GROUP);
 
-            var isDataHubDisabled = checkIfProjectIsEnabledForGroups(projectKey, dataHubGroups);
+        var isDataHubEnabled = checkIfProjectIsEnabledForGroups(projectKey, dataHubGroups);
 
-            if (!isDataHubDisabled) {
-                disabledPlatforms.add("datahub");
-            }
-        } catch (UnableToReachAzureException e) {
-            log.error("Unable to reach Azure to get DataHub groups", e);
+        if (isDataHubEnabled) {
+            log.trace("datahub is enabled");
+        } else {
+            log.trace("datahub is not enabled");
 
-            // As agreed, if we cannot reach Azure, we consider DataHub as NOT disabled for all projects
+            disabledPlatforms.add("datahub");
         }
-
 
         return disabledPlatforms;
     }
@@ -131,22 +137,11 @@ public class PlatformService {
     private List<String> addDisabledPlatformIfTestingHubIsDisabled(String projectKey) {
         List<String> disabledPlatforms = new ArrayList<>();
 
-        //var testingHubProjects = testingHubClient.getAllProjects(); // TODO: This will be used when TestingHub notifies the changes on their API.
+        // TODO: replace this with the call to testingHubClient.getAllProjects when we get API credentials
         var testingHubDefaultProjects = testingHubClient.getDefaultProjects();
 
-        var isTestingHubEnabled = false;
-
-        try {
-            var testingHubProjects = extractIdsFromDefaultProjects(azureGraphClient.getTestingHubGroups(), testingHubDefaultProjects);
-
-            isTestingHubEnabled = testingHubProjects.stream()
-                    .anyMatch(testingHubProject -> testingHubProject.getName().equals(projectKey));
-        } catch (UnableToReachAzureException e) {
-            log.error("Unable to reach Azure to get Testing Hub groups", e);
-
-            isTestingHubEnabled = testingHubDefaultProjects.stream()
-                    .anyMatch(testingHubProject -> testingHubProject.getName().equals(projectKey));
-        }
+        var isTestingHubEnabled = testingHubDefaultProjects.stream()
+                .anyMatch(testingHubProject -> testingHubProject.getName().equals(projectKey));
 
         if (isTestingHubEnabled) {
             log.trace("testingHub is enabled");
@@ -157,12 +152,6 @@ public class PlatformService {
         }
 
         return disabledPlatforms;
-    }
-
-    private Set<TestingHubProject> extractIdsFromDefaultProjects(Set<String> testingHubGroups, Set<TestingHubProject> testingHubDefaultProjects) {
-        return testingHubDefaultProjects.stream()
-                .filter(project -> testingHubGroups.contains(project.getName()))
-                .collect(Collectors.toSet());
     }
 
     public List<Section> getSections(String projectKey, String cluster) {
@@ -219,14 +208,20 @@ public class PlatformService {
     }
 
     private boolean checkIfProjectIsEnabledForGroups(String projectKey, Set<String> applicationGroups) {
-        var edpAzureProjects = applicationGroups.stream()
-                .filter( group -> group.startsWith(projectFilterConfiguration.getProjectRolesGroupPrefix()) )
-                .filter(group -> projectFilterConfiguration.getProjectRolesGroupSuffixes().stream().anyMatch(group::endsWith))
-                .map(group -> group.replaceFirst(projectFilterConfiguration.getProjectRolesGroupPrefix() + "-", ""))
-                .map( this::removeSuffixes)
-                .collect(Collectors.toSet());
+        if (applicationGroups.contains(UNABLE_TO_GET_GROUPS_FALLBACK_GROUP)) {
+            // As agreed, if we cannot reach Azure, we consider DataHub as NOT disabled for all projects
 
-        return edpAzureProjects.contains(projectKey);
+            return true;
+        } else {
+            var edpAzureProjects = applicationGroups.stream()
+                    .filter( group -> group.startsWith(projectFilterConfiguration.getProjectRolesGroupPrefix()) )
+                    .filter(group -> projectFilterConfiguration.getProjectRolesGroupSuffixes().stream().anyMatch(group::endsWith))
+                    .map(group -> group.replaceFirst(projectFilterConfiguration.getProjectRolesGroupPrefix() + "-", ""))
+                    .map( this::removeSuffixes)
+                    .collect(Collectors.toSet());
+
+            return edpAzureProjects.contains(projectKey);
+        }
     }
 
     private String removeSuffixes(String azureGroupName) {

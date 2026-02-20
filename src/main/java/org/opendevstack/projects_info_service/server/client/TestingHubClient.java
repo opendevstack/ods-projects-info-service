@@ -49,7 +49,7 @@ public class TestingHubClient {
                 .collect(Collectors.toSet());
     }
 
-    // TODO: This method will be used when TestingHub notifies the changes on their API.
+    // This method will be used when TestingHub notifies the changes on their API.
     public Set<TestingHubProject> getAllProjects() {
         HttpHeaders headers = new HttpHeaders();
         headers.set("accept", "application/json");
