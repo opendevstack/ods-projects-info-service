@@ -48,6 +48,7 @@ public class AzureGraphClient {
         this.mapper = mapper;
     }
 
+    @CacheableWithFallback(primary = "userGroups", fallback = "userGroups-fallback")
     public Set<String> getUserGroups(String userAccessToken) {
         Set<String> groupIds = new HashSet<>();
         String url = MEMBER_OF_URL + "?$top=" + pageSize; // e.g., "https://graph.microsoft.com/v1.0/me/memberOf?$top=100"
@@ -69,7 +70,7 @@ public class AzureGraphClient {
                 if (nextLinkNode != null) {
                     log.debug("Next link found: {}", nextLinkNode.asText());
 
-                    url = nextLinkNode != null ? nextLinkNode.asText() : null;
+                    url = nextLinkNode.asText();
                 } else {
                     url = null; // No more pages
                 }
