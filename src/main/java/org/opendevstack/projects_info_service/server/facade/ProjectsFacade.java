@@ -160,9 +160,9 @@ public class ProjectsFacade {
         } else {
             log.debug("Project found: {}, returning ProjectPlatforms for clusters: {}.", projectKey, sanitizedClusters);
             var clusters = getClusterBySanitizedValue(clusterMapper, sanitizedClusters.getFirst());
-            List<Section> sections = getSectionFromClusterList(projectKey, clusters);
+            List<Section> sections = getSectionFromFirstAvailableCluster(projectKey, clusters);
             var disabledPlatforms = platformService.getDisabledPlatforms(projectKey);
-            var platformsWithTitle = getPlatformsWithTitleFromClusterList(projectKey, clusters);
+            var platformsWithTitle = getPlatformsWithTitleFromFirstAvailableCluster(projectKey, clusters);
 
             var firstSection = componseFirstSection(platformsWithTitle, disabledPlatforms);
 
@@ -234,7 +234,7 @@ public class ProjectsFacade {
                 .toList();
     }
 
-    private List<Section> getSectionFromClusterList(String projectKey, List<String> clusters) {
+    private List<Section> getSectionFromFirstAvailableCluster(String projectKey, List<String> clusters) {
         for (String cluster : clusters) {
             try {
                 return new ArrayList<>(platformService.getSections(projectKey, cluster));
@@ -245,7 +245,7 @@ public class ProjectsFacade {
         return List.of();
     }
 
-    private PlatformsWithTitle getPlatformsWithTitleFromClusterList(String projectKey, List<String> clusters) {
+    private PlatformsWithTitle getPlatformsWithTitleFromFirstAvailableCluster(String projectKey, List<String> clusters) {
         for (String cluster : clusters) {
             try {
                 return platformService.getPlatforms(projectKey, cluster);
