@@ -1,5 +1,8 @@
 package org.opendevstack.projects_info_service.server.facade;
 
+import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.opendevstack.projects_info_service.configuration.ClusterConfiguration;
 import org.opendevstack.projects_info_service.server.annotations.CacheableWithFallback;
 import org.opendevstack.projects_info_service.server.client.AzureGraphClient;
@@ -8,15 +11,13 @@ import org.opendevstack.projects_info_service.server.dto.Link;
 import org.opendevstack.projects_info_service.server.dto.ProjectInfo;
 import org.opendevstack.projects_info_service.server.dto.ProjectPlatforms;
 import org.opendevstack.projects_info_service.server.dto.Section;
+import org.opendevstack.projects_info_service.server.model.OpenshiftProjectCluster;
 import org.opendevstack.projects_info_service.server.model.PlatformsWithTitle;
 import org.opendevstack.projects_info_service.server.security.GroupValidatorService;
 import org.opendevstack.projects_info_service.server.service.EdpProjectsService;
 import org.opendevstack.projects_info_service.server.service.MocksService;
 import org.opendevstack.projects_info_service.server.service.OpenShiftProjectService;
 import org.opendevstack.projects_info_service.server.service.PlatformService;
-import jakarta.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -36,13 +37,13 @@ public class ProjectsFacade {
 
     private final PlatformService platformService;
 
-    private final GroupValidatorService  groupValidatorService;
+    private final GroupValidatorService groupValidatorService;
 
     private final ClusterConfiguration clusterConfiguration;
 
     private Map<String, String> clusterMapper;
 
-    private final ProjectWhitelistYmlClient  projectWhitelistYmlClient;
+    private final ProjectWhitelistYmlClient projectWhitelistYmlClient;
 
     public ProjectsFacade(AzureGraphClient azureGraphClient,
                           OpenShiftProjectService openShiftProjectService,
@@ -68,7 +69,7 @@ public class ProjectsFacade {
 
         Map<String, String> result = new HashMap<>();
 
-        mapper.forEach( (key, value) -> {
+        mapper.forEach((key, value) -> {
             var values = value.split(",");
 
             for (String val : values) {
@@ -97,19 +98,19 @@ public class ProjectsFacade {
         Map<String, ProjectInfo> result = new HashMap<>();
 
         edpProjects.forEach(edpProject -> {
-           if (result.containsKey(edpProject.getProjectKey())) {
-               var resultProjectClusters = result.get(edpProject.getProjectKey()).getClusters();
-               var edpProjectClusters = edpProject.getClusters();
+            if (result.containsKey(edpProject.getProjectKey())) {
+                var resultProjectClusters = result.get(edpProject.getProjectKey()).getClusters();
+                var edpProjectClusters = edpProject.getClusters();
 
-               // Merge clusters if project already exists
-               var mergedClusters = Stream.concat(resultProjectClusters.stream(), edpProjectClusters.stream())
-                       .distinct()
-                       .toList();
+                // Merge clusters if project already exists
+                var mergedClusters = Stream.concat(resultProjectClusters.stream(), edpProjectClusters.stream())
+                        .distinct()
+                        .toList();
 
-               result.get(edpProject.getProjectKey()).setClusters(mergedClusters);
-           } else {
-               result.put(edpProject.getProjectKey(), edpProject);
-           }
+                result.get(edpProject.getProjectKey()).setClusters(mergedClusters);
+            } else {
+                result.put(edpProject.getProjectKey(), edpProject);
+            }
         });
 
         for (Map.Entry<String, ProjectInfo> mockEntry : mockProjects.entrySet()) {
@@ -129,9 +130,9 @@ public class ProjectsFacade {
         var allEdpProjectsInfo = openShiftProjectService.fetchProjects();
         var mockProjectsAndClusters = mocksService.getDefaultProjectsAndClusters();
 
-        var edProjectInfo = allEdpProjectsInfo.stream()
+        var edpProjectsInfo = allEdpProjectsInfo.stream()
                 .filter(p -> p.getProject().equals(projectKey))
-                .findFirst();
+                .toList();
 
         var mockClusters = mockProjectsAndClusters.entrySet().stream()
                 .filter(e -> e.getValue().getProjectKey().equals(projectKey))
@@ -139,26 +140,29 @@ public class ProjectsFacade {
                 .toList();
 
         // If EDP project exists, add its clusters to the front of the list, so we prioritize them
-        var mergedClusters = edProjectInfo.map(projectInfo -> {
-            List<String> clusters = new ArrayList<>();
+        var mergedClusters = new ArrayList<String>();
 
-            clusters.add(projectInfo.getCluster());
+        if (!edpProjectsInfo.isEmpty()) {
+            mergedClusters.addAll(
+                    edpProjectsInfo.stream()
+                            .map(OpenshiftProjectCluster::getCluster)
+                            .toList()
+            );
+        }
 
-            clusters.addAll(mockClusters);
+        mergedClusters.addAll(mockClusters);
+        var sanitizedClusters = sanitizeClusters(mergedClusters);
 
-            return List.copyOf(clusters); // We always prefer immutable lists
-        }).orElse(mockClusters);
-
-        if (mergedClusters.isEmpty()) {
+        if (sanitizedClusters.isEmpty()) {
             log.debug("Project not found: {}", projectKey);
 
             return null;
         } else {
-            log.debug("Project found: {}, returning ProjectPlatforms for clusters: {}.", projectKey, mergedClusters);
-
-            List<Section> sections = new ArrayList<>(platformService.getSections(projectKey, mergedClusters.getFirst()));
+            log.debug("Project found: {}, returning ProjectPlatforms for clusters: {}.", projectKey, sanitizedClusters);
+            var clusters = getClusterBySanitizedValue(clusterMapper, sanitizedClusters.getFirst());
+            List<Section> sections = getSectionFromClusterList(projectKey, clusters);
             var disabledPlatforms = platformService.getDisabledPlatforms(projectKey);
-            var platformsWithTitle = platformService.getPlatforms(projectKey, mergedClusters.getFirst());
+            var platformsWithTitle = getPlatformsWithTitleFromClusterList(projectKey, clusters);
 
             var firstSection = componseFirstSection(platformsWithTitle, disabledPlatforms);
 
@@ -223,4 +227,32 @@ public class ProjectsFacade {
         return new ArrayList<>(sanitizedClusters);
     }
 
+    private <K, V> List<K> getClusterBySanitizedValue(Map<K, V> map, V value) {
+        return map.entrySet().stream()
+                .filter(entry -> Objects.equals(entry.getValue(), value))
+                .map(Map.Entry::getKey)
+                .toList();
+    }
+
+    private List<Section> getSectionFromClusterList(String projectKey, List<String> clusters) {
+        for (String cluster : clusters) {
+            try {
+                return new ArrayList<>(platformService.getSections(projectKey, cluster));
+            } catch (Exception e) {
+                log.warn("In sections, cluster is not configured: {}", cluster);
+            }
+        }
+        return List.of();
+    }
+
+    private PlatformsWithTitle getPlatformsWithTitleFromClusterList(String projectKey, List<String> clusters) {
+        for (String cluster : clusters) {
+            try {
+                return platformService.getPlatforms(projectKey, cluster);
+            } catch (Exception e) {
+                log.warn("In platforms, cluster is not configured: {}", cluster);
+            }
+        }
+        return new PlatformsWithTitle();
+    }
 }

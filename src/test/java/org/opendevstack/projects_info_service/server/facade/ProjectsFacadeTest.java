@@ -67,7 +67,8 @@ class ProjectsFacadeTest {
         Map<String, String> clusterConfigurationMapper = Map.of(
                 "US_TEST", "us-test",
                 "US", "us-dev, us-aws-east1",
-                "EU", "eu-dev, eu-aws-west1, Europe"
+                "EU", "eu-dev, eu-aws-west1, Europe",
+                "MOTHER", "mother-cluster, mother-cluster-1, mother-cluster-2"
         );
 
         when(clusterConfiguration.getMapper()).thenReturn(clusterConfigurationMapper);
@@ -398,5 +399,82 @@ class ProjectsFacadeTest {
         assertThatThrownBy(() -> projectsFacade.getProjects(accessToken))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("is not recognized");
+    }
+
+    @Test
+    void givenMultipleClustersForProject_whenGetProjects_thenClustersAreMergedAndSanitized() {
+        // given
+        var accessToken = "token";
+        var userEmail = "user@example.com";
+        var azureGroups = new HashSet<>(List.of("g1"));
+
+        var edpProjectsInfo = List.of(new OpenshiftProjectCluster("P1", "eu-dev"));
+        var edpProjects = List.of(
+                new ProjectInfo("P1", List.of("eu-dev")),
+                new ProjectInfo("P1", List.of("us-test"))
+        );
+
+        when(azureGraphClient.getUserEmail(accessToken)).thenReturn(userEmail);
+        when(azureGraphClient.getUserGroups(accessToken)).thenReturn(azureGroups);
+        when(openShiftProjectService.fetchProjects()).thenReturn(edpProjectsInfo);
+        when(edpProjectsService.filterProjects(azureGroups, edpProjectsInfo)).thenReturn(new HashSet<>(edpProjects));
+        when(mocksService.getProjectsAndClusters(userEmail)).thenReturn(Collections.emptyMap());
+
+        // when
+        Map<String, ProjectInfo> projects = projectsFacade.getProjects(accessToken);
+
+        // then
+        assertThat(projects).containsKey("P1");
+        assertThat(projects.get("P1").getClusters()).containsExactlyInAnyOrder("EU", "US_TEST");
+    }
+
+    @Test
+    void givenEmptyClusterName_whenGetProjectPlatforms_thenIgnored() {
+        // given
+        var projectKey = "P1";
+        var edpProjectsInfo = List.of(new OpenshiftProjectCluster(projectKey, "")); // Empty cluster
+
+        when(openShiftProjectService.fetchProjects()).thenReturn(edpProjectsInfo);
+        // when(platformService.getDisabledPlatforms(projectKey)).thenReturn(Collections.emptyList()); // Removed unnecessary stubbing
+        // It should skip the empty cluster and use the next one if available.
+        // But here we only have one empty, so sanitizeClusters returns empty list, and getProjectPlatforms returns null.
+
+        // when
+        ProjectPlatforms result = projectsFacade.getProjectPlatforms(projectKey);
+
+        // then
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void givenClusterNotConfiguredInPlatformService_whenGetProjectPlatforms_thenFallbackToNextCluster() {
+        // given
+        var projectKey = "P1";
+        // mapped to US_TEST and EU
+        var edpProjectsInfo = List.of(
+                new OpenshiftProjectCluster(projectKey, "us-test"),
+                new OpenshiftProjectCluster(projectKey, "eu-dev")
+        );
+
+        when(openShiftProjectService.fetchProjects()).thenReturn(edpProjectsInfo);
+        when(platformService.getDisabledPlatforms(projectKey)).thenReturn(Collections.emptyList());
+
+        // us-test fails
+        when(platformService.getSections(projectKey, "us-test")).thenThrow(new RuntimeException("Not configured"));
+        when(platformService.getPlatforms(projectKey, "us-test")).thenThrow(new RuntimeException("Not configured"));
+
+        // eu-dev succeeds
+        var expectedSections = List.of(SectionMother.of());
+        var expectedPlatforms = PlatformsWithTitleMother.of();
+        when(platformService.getSections(projectKey, "eu-dev")).thenReturn(expectedSections);
+        when(platformService.getPlatforms(projectKey, "eu-dev")).thenReturn(expectedPlatforms);
+
+        // when
+        ProjectPlatforms result = projectsFacade.getProjectPlatforms(projectKey);
+
+        // then
+        assertThat(result).isNotNull();
+        assertThat(result.getSections()).hasSize(2); // First section + expectedSection
+        assertThat(result.getSections().get(1)).isEqualTo(expectedSections.get(0));
     }
 }
