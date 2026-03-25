@@ -1,34 +1,29 @@
 package org.opendevstack.projects_info_service.server.facade;
 
-import org.opendevstack.projects_info_service.configuration.ClusterConfiguration;
-import org.opendevstack.projects_info_service.server.client.AzureGraphClient;
-import org.opendevstack.projects_info_service.server.client.ProjectWhitelistYmlClient;
-import org.opendevstack.projects_info_service.server.dto.*;
-import org.opendevstack.projects_info_service.server.dto.ProjectInfoMother;
-import org.opendevstack.projects_info_service.server.dto.SectionMother;
-import org.opendevstack.projects_info_service.server.model.OpenshiftProjectCluster;
-import org.opendevstack.projects_info_service.server.model.OpenshiftProjectClusterMother;
-import org.opendevstack.projects_info_service.server.model.PlatformMother;
-import org.opendevstack.projects_info_service.server.model.PlatformsWithTitleMother;
-import org.opendevstack.projects_info_service.server.model.ProjectsWhitelisted;
-import org.opendevstack.projects_info_service.server.security.GroupValidatorService;
-import org.opendevstack.projects_info_service.server.service.EdpProjectsService;
-import org.opendevstack.projects_info_service.server.service.MocksService;
-import org.opendevstack.projects_info_service.server.service.OpenShiftProjectService;
-import org.opendevstack.projects_info_service.server.service.PlatformService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.opendevstack.projects_info_service.configuration.ClusterConfiguration;
+import org.opendevstack.projects_info_service.server.client.AzureGraphClient;
+import org.opendevstack.projects_info_service.server.client.ProjectWhitelistYmlClient;
+import org.opendevstack.projects_info_service.server.dto.*;
+import org.opendevstack.projects_info_service.server.model.*;
+import org.opendevstack.projects_info_service.server.security.GroupValidatorService;
+import org.opendevstack.projects_info_service.server.service.EdpProjectsService;
+import org.opendevstack.projects_info_service.server.service.MocksService;
+import org.opendevstack.projects_info_service.server.service.OpenShiftProjectService;
+import org.opendevstack.projects_info_service.server.service.PlatformService;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -84,8 +79,8 @@ class ProjectsFacadeTest {
         var accessToken = "sample";
         var azureGroups = new HashSet<>(List.of("group1", "group2", "group3"));
         var edpProjectsInfo = List.of(
-                new OpenshiftProjectCluster("edpc","eu_dev"),
-                new OpenshiftProjectCluster("devstack","us_test")
+                new OpenshiftProjectCluster("edpc", "eu_dev"),
+                new OpenshiftProjectCluster("devstack", "us_test")
         );
 
         var edpProjects = List.of(new ProjectInfo("ATLAS", Collections.emptyList()), new ProjectInfo("EDPP", Collections.emptyList()));
@@ -312,8 +307,8 @@ class ProjectsFacadeTest {
         var accessToken = "sample";
         var azureGroups = new HashSet<>(List.of("g1", "g2"));
         var edpProjectsInfo = List.of(
-                new OpenshiftProjectCluster("edpc","eu_dev"),
-                new OpenshiftProjectCluster("devstack","us_test")
+                new OpenshiftProjectCluster("edpc", "eu_dev"),
+                new OpenshiftProjectCluster("devstack", "us_test")
         );
 
         var edpProjects = List.of(
@@ -435,9 +430,6 @@ class ProjectsFacadeTest {
         var edpProjectsInfo = List.of(new OpenshiftProjectCluster(projectKey, "")); // Empty cluster
 
         when(openShiftProjectService.fetchProjects()).thenReturn(edpProjectsInfo);
-        // when(platformService.getDisabledPlatforms(projectKey)).thenReturn(Collections.emptyList()); // Removed unnecessary stubbing
-        // It should skip the empty cluster and use the next one if available.
-        // But here we only have one empty, so sanitizeClusters returns empty list, and getProjectPlatforms returns null.
 
         // when
         ProjectPlatforms result = projectsFacade.getProjectPlatforms(projectKey);
