@@ -1,34 +1,29 @@
 package org.opendevstack.projects_info_service.server.facade;
 
-import org.opendevstack.projects_info_service.configuration.ClusterConfiguration;
-import org.opendevstack.projects_info_service.server.client.AzureGraphClient;
-import org.opendevstack.projects_info_service.server.client.ProjectWhitelistYmlClient;
-import org.opendevstack.projects_info_service.server.dto.*;
-import org.opendevstack.projects_info_service.server.dto.ProjectInfoMother;
-import org.opendevstack.projects_info_service.server.dto.SectionMother;
-import org.opendevstack.projects_info_service.server.model.OpenshiftProjectCluster;
-import org.opendevstack.projects_info_service.server.model.OpenshiftProjectClusterMother;
-import org.opendevstack.projects_info_service.server.model.PlatformMother;
-import org.opendevstack.projects_info_service.server.model.PlatformsWithTitleMother;
-import org.opendevstack.projects_info_service.server.model.ProjectsWhitelisted;
-import org.opendevstack.projects_info_service.server.security.GroupValidatorService;
-import org.opendevstack.projects_info_service.server.service.EdpProjectsService;
-import org.opendevstack.projects_info_service.server.service.MocksService;
-import org.opendevstack.projects_info_service.server.service.OpenShiftProjectService;
-import org.opendevstack.projects_info_service.server.service.PlatformService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.opendevstack.projects_info_service.configuration.ClusterConfiguration;
+import org.opendevstack.projects_info_service.server.client.AzureGraphClient;
+import org.opendevstack.projects_info_service.server.client.ProjectWhitelistYmlClient;
+import org.opendevstack.projects_info_service.server.dto.*;
+import org.opendevstack.projects_info_service.server.model.*;
+import org.opendevstack.projects_info_service.server.security.GroupValidatorService;
+import org.opendevstack.projects_info_service.server.service.EdpProjectsService;
+import org.opendevstack.projects_info_service.server.service.MocksService;
+import org.opendevstack.projects_info_service.server.service.OpenShiftProjectService;
+import org.opendevstack.projects_info_service.server.service.PlatformService;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -67,7 +62,8 @@ class ProjectsFacadeTest {
         Map<String, String> clusterConfigurationMapper = Map.of(
                 "US_TEST", "us-test",
                 "US", "us-dev, us-aws-east1",
-                "EU", "eu-dev, eu-aws-west1, Europe"
+                "EU", "eu-dev, eu-aws-west1, Europe",
+                "MOTHER", "mother-cluster, mother-cluster-1, mother-cluster-2"
         );
 
         when(clusterConfiguration.getMapper()).thenReturn(clusterConfigurationMapper);
@@ -83,8 +79,8 @@ class ProjectsFacadeTest {
         var accessToken = "sample";
         var azureGroups = new HashSet<>(List.of("group1", "group2", "group3"));
         var edpProjectsInfo = List.of(
-                new OpenshiftProjectCluster("edpc","eu_dev"),
-                new OpenshiftProjectCluster("devstack","us_test")
+                new OpenshiftProjectCluster("edpc", "eu_dev"),
+                new OpenshiftProjectCluster("devstack", "us_test")
         );
 
         var edpProjects = List.of(new ProjectInfo("ATLAS", Collections.emptyList()), new ProjectInfo("EDPP", Collections.emptyList()));
@@ -311,8 +307,8 @@ class ProjectsFacadeTest {
         var accessToken = "sample";
         var azureGroups = new HashSet<>(List.of("g1", "g2"));
         var edpProjectsInfo = List.of(
-                new OpenshiftProjectCluster("edpc","eu_dev"),
-                new OpenshiftProjectCluster("devstack","us_test")
+                new OpenshiftProjectCluster("edpc", "eu_dev"),
+                new OpenshiftProjectCluster("devstack", "us_test")
         );
 
         var edpProjects = List.of(
@@ -398,5 +394,79 @@ class ProjectsFacadeTest {
         assertThatThrownBy(() -> projectsFacade.getProjects(accessToken))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("is not recognized");
+    }
+
+    @Test
+    void givenMultipleClustersForProject_whenGetProjects_thenClustersAreMergedAndSanitized() {
+        // given
+        var accessToken = "token";
+        var userEmail = "user@example.com";
+        var azureGroups = new HashSet<>(List.of("g1"));
+
+        var edpProjectsInfo = List.of(new OpenshiftProjectCluster("P1", "eu-dev"));
+        var edpProjects = List.of(
+                new ProjectInfo("P1", List.of("eu-dev")),
+                new ProjectInfo("P1", List.of("us-test"))
+        );
+
+        when(azureGraphClient.getUserEmail(accessToken)).thenReturn(userEmail);
+        when(azureGraphClient.getUserGroups(accessToken)).thenReturn(azureGroups);
+        when(openShiftProjectService.fetchProjects()).thenReturn(edpProjectsInfo);
+        when(edpProjectsService.filterProjects(azureGroups, edpProjectsInfo)).thenReturn(new HashSet<>(edpProjects));
+        when(mocksService.getProjectsAndClusters(userEmail)).thenReturn(Collections.emptyMap());
+
+        // when
+        Map<String, ProjectInfo> projects = projectsFacade.getProjects(accessToken);
+
+        // then
+        assertThat(projects).containsKey("P1");
+        assertThat(projects.get("P1").getClusters()).containsExactly("EU", "US_TEST");
+    }
+
+    @Test
+    void givenEmptyClusterName_whenGetProjectPlatforms_thenIgnored() {
+        // given
+        var projectKey = "P1";
+        var edpProjectsInfo = List.of(new OpenshiftProjectCluster(projectKey, "")); // Empty cluster
+
+        when(openShiftProjectService.fetchProjects()).thenReturn(edpProjectsInfo);
+
+        // when
+        ProjectPlatforms result = projectsFacade.getProjectPlatforms(projectKey);
+
+        // then
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void givenClusterNotConfiguredInPlatformService_whenGetProjectPlatforms_thenFallbackToNextCluster() {
+        // given
+        var projectKey = "P1";
+        // mapped to US_TEST and EU
+        var edpProjectsInfo = List.of(
+                new OpenshiftProjectCluster(projectKey, "us-test"),
+                new OpenshiftProjectCluster(projectKey, "eu-dev")
+        );
+
+        when(openShiftProjectService.fetchProjects()).thenReturn(edpProjectsInfo);
+        when(platformService.getDisabledPlatforms(projectKey)).thenReturn(Collections.emptyList());
+
+        // us-test fails
+        when(platformService.getSections(projectKey, "us-test")).thenThrow(new RuntimeException("Not configured"));
+        when(platformService.getPlatforms(projectKey, "us-test")).thenThrow(new RuntimeException("Not configured"));
+
+        // eu-dev succeeds
+        var expectedSections = List.of(SectionMother.of());
+        var expectedPlatforms = PlatformsWithTitleMother.of();
+        when(platformService.getSections(projectKey, "eu-dev")).thenReturn(expectedSections);
+        when(platformService.getPlatforms(projectKey, "eu-dev")).thenReturn(expectedPlatforms);
+
+        // when
+        ProjectPlatforms result = projectsFacade.getProjectPlatforms(projectKey);
+
+        // then
+        assertThat(result).isNotNull();
+        assertThat(result.getSections()).hasSize(2); // First section + expectedSection
+        assertThat(result.getSections().get(1)).isEqualTo(expectedSections.get(0));
     }
 }

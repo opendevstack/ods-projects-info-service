@@ -36,6 +36,12 @@ Do the following:
 - Browse and select the `src/main/resources/application-local.env` you just created
 - At the end of the process, you should have a configuration similar to the following:
 
+### 2.3. Modify (if needed) the "Build and run using" and "Run tests" using options in IntelliJ"
+
+Do the following:
+- Go to Settings / Build, Execution and Deployment / Build tools / Gradle
+- Change the options "Build and run using" and "Run tests" to "IntelliJ IDEA"
+
 ## 3. Customize application-local.yml file
 
 The `application.yml` file takes some property values from the env vars, and `application-local.yml` config file 
