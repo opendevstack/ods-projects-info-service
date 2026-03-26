@@ -420,7 +420,7 @@ class ProjectsFacadeTest {
 
         // then
         assertThat(projects).containsKey("P1");
-        assertThat(projects.get("P1").getClusters()).containsExactlyInAnyOrder("EU", "US_TEST");
+        assertThat(projects.get("P1").getClusters()).containsExactly("EU", "US_TEST");
     }
 
     @Test

@@ -239,7 +239,8 @@ public class ProjectsFacade {
             try {
                 return new ArrayList<>(platformService.getSections(projectKey, cluster));
             } catch (Exception e) {
-                log.warn("In sections, cluster is not configured: {}", cluster);
+                log.warn("In sections for projectKey {}, cluster is not configured: {}", projectKey, cluster);
+                log.warn("Exception: {}", e.getMessage());
             }
         }
         return List.of();
@@ -250,7 +251,8 @@ public class ProjectsFacade {
             try {
                 return platformService.getPlatforms(projectKey, cluster);
             } catch (Exception e) {
-                log.warn("In platforms, cluster is not configured: {}", cluster);
+                log.warn("In platforms for projectKey {}, cluster is not configured: {}", projectKey, cluster);
+                log.warn("Exception: {}", e.getMessage());
             }
         }
         return new PlatformsWithTitle();
