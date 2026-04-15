@@ -1,6 +1,7 @@
 package org.opendevstack.projects_info_service.server.controllers;
 
 import org.opendevstack.projects_info_service.server.dto.ProjectPlatformsMother;
+import org.opendevstack.projects_info_service.server.facade.AuthenticationFacade;
 import org.opendevstack.projects_info_service.server.facade.ProjectsFacade;
 import org.opendevstack.projects_info_service.server.dto.ProjectInfo;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,9 @@ import static org.mockito.Mockito.when;
 class ProjectsApiControllerTest {
 
     @Mock
+    private AuthenticationFacade authenticationFacade;
+
+    @Mock
     private ProjectsFacade projectsFacade;
 
     @InjectMocks
@@ -33,10 +37,11 @@ class ProjectsApiControllerTest {
         Map<String, ProjectInfo> projects = new HashMap<>();
         projects.put("project1", new ProjectInfo());
 
+        when(authenticationFacade.getAccessToken()).thenReturn(token);
         when(projectsFacade.getProjects(token)).thenReturn(projects);
 
         // when
-        var response = projectsApiController.getProjects(token);
+        var response = projectsApiController.getProjects();
 
         // then
         assertThat(response).isNotNull();
@@ -54,10 +59,11 @@ class ProjectsApiControllerTest {
         projects.put("project1", projectInfo);
         projects.put("project2", new ProjectInfo());
 
+        when(authenticationFacade.getAccessToken()).thenReturn(token);
         when(projectsFacade.getProjects(token)).thenReturn(projects);
 
         // when
-        var response = projectsApiController.getProjectClusters(token, "project1");
+        var response = projectsApiController.getProjectClusters("project1");
 
         // then
         assertThat(response).isNotNull();
@@ -75,10 +81,11 @@ class ProjectsApiControllerTest {
         projects.put("project1", projectInfo);
         projects.put("project2", new ProjectInfo());
 
+        when(authenticationFacade.getAccessToken()).thenReturn(token);
         when(projectsFacade.getProjects(token)).thenReturn(projects);
 
         // when
-        var response = projectsApiController.getProjectClusters(token, "project3");
+        var response = projectsApiController.getProjectClusters("project3");
 
         // then
         assertThat(response).isNotNull();
