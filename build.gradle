@@ -74,6 +74,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
 
+    implementation 'com.microsoft.azure:msal4j:1.17.2'
+
     implementation('com.azure.spring:spring-cloud-azure-starter-actuator') {
         exclude group: 'org.springframework.boot', module: 'spring-boot-autoconfigure'
     }

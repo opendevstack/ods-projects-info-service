@@ -8,6 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.opendevstack.projects_info_service.server.facade.AuthenticationFacade;
+import org.opendevstack.projects_info_service.server.service.GraphTokenService;
 import org.opendevstack.projects_info_service.server.service.MocksService;
 import org.springframework.http.HttpStatusCode;
 
@@ -30,16 +31,20 @@ class AzureGroupsApiControllerTest {
     @Mock
     private MocksService mocksService;
 
+    @Mock
+    private GraphTokenService graphTokenService;
+
     @InjectMocks
     private AzureGroupsApiController azureGroupsApiController;
 
     @Test
-    void givenAnAzureToken_whenGetAzureGroups_thenReturnListOfGroups() {
+    void givenAnAzureToken_whenGetAzureGroups_thenReturnListOfGroups() throws Exception {
         // given
         var userEmail = "user@example.com";
         var accessToken = "sampleToken";
 
         when(authenticationFacade.getAccessToken()).thenReturn(accessToken);
+        when(graphTokenService.getGraphToken(accessToken)).thenReturn(accessToken);
         when(azureGraphClient.getUserEmail(accessToken)).thenReturn(userEmail);
         when(azureGraphClient.getUserGroups(accessToken)).thenReturn(new HashSet<>(List.of("group1", "group2", "group3")));
         when(mocksService.getUserGroups(userEmail)).thenReturn(new HashSet<>(List.of("mock-group1", "mock-group2")));
@@ -55,11 +60,12 @@ class AzureGroupsApiControllerTest {
     }
 
     @Test
-    void givenAnAzureToken_whenGetAzureGroups_AndInvalidToken_thenThrowInvalidAzureProcessException() {
+    void givenAnAzureToken_whenGetAzureGroups_AndInvalidToken_thenThrowInvalidAzureProcessException() throws Exception {
         // given
         var accessToken = "sampleToken";
 
         when(authenticationFacade.getAccessToken()).thenReturn(accessToken);
+        when(graphTokenService.getGraphToken(accessToken)).thenReturn(accessToken);
         when(azureGraphClient.getUserGroups(accessToken)).thenThrow(new InvalidContentProcessException("That's an invalid token!", null));
 
         // when
