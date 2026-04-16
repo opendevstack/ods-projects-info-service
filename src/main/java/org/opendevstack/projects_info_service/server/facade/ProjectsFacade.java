@@ -15,6 +15,7 @@ import org.opendevstack.projects_info_service.server.model.OpenshiftProjectClust
 import org.opendevstack.projects_info_service.server.model.PlatformsWithTitle;
 import org.opendevstack.projects_info_service.server.security.GroupValidatorService;
 import org.opendevstack.projects_info_service.server.service.EdpProjectsService;
+import org.opendevstack.projects_info_service.server.service.GraphTokenService;
 import org.opendevstack.projects_info_service.server.service.MocksService;
 import org.opendevstack.projects_info_service.server.service.OpenShiftProjectService;
 import org.opendevstack.projects_info_service.server.service.PlatformService;
@@ -45,6 +46,8 @@ public class ProjectsFacade {
 
     private final ProjectWhitelistYmlClient projectWhitelistYmlClient;
 
+    private final GraphTokenService graphTokenService;
+
     public ProjectsFacade(AzureGraphClient azureGraphClient,
                           OpenShiftProjectService openShiftProjectService,
                           EdpProjectsService edpProjectsService,
@@ -52,7 +55,8 @@ public class ProjectsFacade {
                           PlatformService platformService,
                           GroupValidatorService groupValidatorService,
                           ClusterConfiguration clusterConfiguration,
-                          ProjectWhitelistYmlClient projectWhitelistYmlClient) {
+                          ProjectWhitelistYmlClient projectWhitelistYmlClient,
+                          GraphTokenService graphTokenService) {
         this.azureGraphClient = azureGraphClient;
         this.openShiftProjectService = openShiftProjectService;
         this.edpProjectsService = edpProjectsService;
@@ -61,6 +65,7 @@ public class ProjectsFacade {
         this.groupValidatorService = groupValidatorService;
         this.clusterConfiguration = clusterConfiguration;
         this.projectWhitelistYmlClient = projectWhitelistYmlClient;
+        this.graphTokenService = graphTokenService;
     }
 
     @PostConstruct
@@ -82,10 +87,11 @@ public class ProjectsFacade {
 
     @CacheableWithFallback(primary = "projectsInfoCache", fallback = "projectsInfoCache-fallback", defaultValue = "T(java.util.Collections).emptyMap()")
     public Map<String, ProjectInfo> getProjects(String token) {
-        var azureUserGroups = azureGraphClient.getUserGroups(token);
+        var graphToken = graphTokenService.getGraphToken(token);
+        var azureUserGroups = azureGraphClient.getUserGroups(graphToken);
         groupValidatorService.validate(azureUserGroups);
 
-        var userEmail = azureGraphClient.getUserEmail(token);
+        var userEmail = azureGraphClient.getUserEmail(graphToken);
         var allEdpProjectsInfo = openShiftProjectService.fetchProjects();
 
         var edpProjects = edpProjectsService.filterProjects(azureUserGroups, allEdpProjectsInfo);
