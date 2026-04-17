@@ -2,6 +2,7 @@ package org.opendevstack.projects_info_service.server.controllers;
 
 import org.opendevstack.projects_info_service.server.api.ProjectsApi;
 import org.opendevstack.projects_info_service.server.dto.ProjectPlatforms;
+import org.opendevstack.projects_info_service.server.facade.AuthenticationFacade;
 import org.opendevstack.projects_info_service.server.facade.ProjectsFacade;
 import org.opendevstack.projects_info_service.server.dto.ProjectInfo;
 import lombok.AllArgsConstructor;
@@ -19,18 +20,23 @@ import java.util.List;
 @Slf4j
 public class ProjectsApiController implements ProjectsApi {
 
-   private final ProjectsFacade projectsFacade;
+    private final AuthenticationFacade authenticationFacade;
+    private final ProjectsFacade projectsFacade;
 
     @Override
-    public ResponseEntity<List<String>> getProjects(String token) {
-        var projects = new ArrayList<>(projectsFacade.getProjects(token).keySet());
+    public ResponseEntity<List<String>> getProjects() {
+        var accessToken = authenticationFacade.getAccessToken();
+
+        var projects = new ArrayList<>(projectsFacade.getProjects(accessToken).keySet());
 
         return ResponseEntity.ok(projects);
     }
 
     @Override
-    public ResponseEntity<ProjectInfo> getProjectClusters(String token, String projectKey) {
-        var projects = projectsFacade.getProjects(token);
+    public ResponseEntity<ProjectInfo> getProjectClusters(String projectKey) {
+        var accessToken = authenticationFacade.getAccessToken();
+
+        var projects = projectsFacade.getProjects(accessToken);
         var project = projects.get(projectKey);
 
         if (project == null) {

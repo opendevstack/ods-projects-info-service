@@ -13,6 +13,7 @@ import org.opendevstack.projects_info_service.server.dto.*;
 import org.opendevstack.projects_info_service.server.model.*;
 import org.opendevstack.projects_info_service.server.security.GroupValidatorService;
 import org.opendevstack.projects_info_service.server.service.EdpProjectsService;
+import org.opendevstack.projects_info_service.server.service.GraphTokenService;
 import org.opendevstack.projects_info_service.server.service.MocksService;
 import org.opendevstack.projects_info_service.server.service.OpenShiftProjectService;
 import org.opendevstack.projects_info_service.server.service.PlatformService;
@@ -53,6 +54,9 @@ class ProjectsFacadeTest {
     @Mock
     private ProjectWhitelistYmlClient projectWhitelistYmlClient;
 
+    @Mock
+    private GraphTokenService graphTokenService;
+
     @InjectMocks
     private ProjectsFacade projectsFacade;
 
@@ -77,6 +81,7 @@ class ProjectsFacadeTest {
         // given
         var userEmail = "pepito";
         var accessToken = "sample";
+        var graphToken = "graph-token";
         var azureGroups = new HashSet<>(List.of("group1", "group2", "group3"));
         var edpProjectsInfo = List.of(
                 new OpenshiftProjectCluster("edpc", "eu_dev"),
@@ -87,8 +92,9 @@ class ProjectsFacadeTest {
         var mockProjectKey = "MockProject";
         var mockProjects = Map.of(mockProjectKey, new ProjectInfo(mockProjectKey, Collections.emptyList()));
 
-        when(azureGraphClient.getUserEmail(accessToken)).thenReturn(userEmail);
-        when(azureGraphClient.getUserGroups(accessToken)).thenReturn(azureGroups);
+        when(graphTokenService.getGraphToken(accessToken)).thenReturn(graphToken);
+        when(azureGraphClient.getUserEmail(graphToken)).thenReturn(userEmail);
+        when(azureGraphClient.getUserGroups(graphToken)).thenReturn(azureGroups);
         when(openShiftProjectService.fetchProjects()).thenReturn(edpProjectsInfo);
         when(edpProjectsService.filterProjects(azureGroups, edpProjectsInfo))
                 .thenReturn(new HashSet<>(edpProjects));
@@ -110,6 +116,7 @@ class ProjectsFacadeTest {
         // given
         var userEmail = "pepito";
         var accessToken = "sample";
+        var graphToken = "graph-token";
         var azureGroups = new HashSet<>(List.of("group1"));
         var edpProjectsInfo = List.of(
                 new OpenshiftProjectCluster("edpc", "eu_dev")
@@ -120,8 +127,9 @@ class ProjectsFacadeTest {
                 new ProjectInfo("ATLAS", List.of("us-aws-east1", "Europe"))
         );
 
-        when(azureGraphClient.getUserEmail(accessToken)).thenReturn(userEmail);
-        when(azureGraphClient.getUserGroups(accessToken)).thenReturn(azureGroups);
+        when(graphTokenService.getGraphToken(accessToken)).thenReturn(graphToken);
+        when(azureGraphClient.getUserEmail(graphToken)).thenReturn(userEmail);
+        when(azureGraphClient.getUserGroups(graphToken)).thenReturn(azureGroups);
         when(openShiftProjectService.fetchProjects()).thenReturn(edpProjectsInfo);
         when(edpProjectsService.filterProjects(azureGroups, edpProjectsInfo)).thenReturn(new HashSet<>(edpProjects));
         when(mocksService.getProjectsAndClusters(userEmail)).thenReturn(Collections.emptyMap());
@@ -142,6 +150,7 @@ class ProjectsFacadeTest {
         // given
         var userEmail = "pepito";
         var accessToken = "sample";
+        var graphToken = "graph-token";
         var azureGroups = new HashSet<>(List.of("group1"));
         var edpProjectsInfo = List.of(
                 new OpenshiftProjectCluster("edpc", "eu_dev")
@@ -152,8 +161,9 @@ class ProjectsFacadeTest {
                 new ProjectInfo("ATLAS", List.of("us-aws-east1", "Europe"))
         );
 
-        when(azureGraphClient.getUserEmail(accessToken)).thenReturn(userEmail);
-        when(azureGraphClient.getUserGroups(accessToken)).thenReturn(azureGroups);
+        when(graphTokenService.getGraphToken(accessToken)).thenReturn(graphToken);
+        when(azureGraphClient.getUserEmail(graphToken)).thenReturn(userEmail);
+        when(azureGraphClient.getUserGroups(graphToken)).thenReturn(azureGroups);
         when(openShiftProjectService.fetchProjects()).thenReturn(edpProjectsInfo);
         when(edpProjectsService.filterProjects(azureGroups, edpProjectsInfo)).thenReturn(new HashSet<>(edpProjects));
         when(mocksService.getProjectsAndClusters(userEmail)).thenReturn(Map.of("ATLAS", new ProjectInfo("ATLAS", List.of("us-test"))));
@@ -305,6 +315,7 @@ class ProjectsFacadeTest {
         // given
         var userEmail = "pepito";
         var accessToken = "sample";
+        var graphToken = "graph-token";
         var azureGroups = new HashSet<>(List.of("g1", "g2"));
         var edpProjectsInfo = List.of(
                 new OpenshiftProjectCluster("edpc", "eu_dev"),
@@ -318,8 +329,9 @@ class ProjectsFacadeTest {
         var mockProjectKey = "MockProject";
         var mockProjects = Map.of(mockProjectKey, new ProjectInfo(mockProjectKey, Collections.emptyList()));
 
-        when(azureGraphClient.getUserEmail(accessToken)).thenReturn(userEmail);
-        when(azureGraphClient.getUserGroups(accessToken)).thenReturn(azureGroups);
+        when(graphTokenService.getGraphToken(accessToken)).thenReturn(graphToken);
+        when(azureGraphClient.getUserEmail(graphToken)).thenReturn(userEmail);
+        when(azureGraphClient.getUserGroups(graphToken)).thenReturn(azureGroups);
         when(openShiftProjectService.fetchProjects()).thenReturn(edpProjectsInfo);
         when(edpProjectsService.filterProjects(azureGroups, edpProjectsInfo)).thenReturn(new HashSet<>(edpProjects));
         when(mocksService.getProjectsAndClusters(userEmail)).thenReturn(mockProjects);
@@ -344,6 +356,7 @@ class ProjectsFacadeTest {
         // given
         var userEmail = "pepito";
         var accessToken = "token";
+        var graphToken = "graph-token";
         var azureGroups = new HashSet<>(List.of("g1"));
         var edpProjectsInfo = List.of(new OpenshiftProjectCluster("p", "eu_dev"));
         var edpProjects = List.of(
@@ -352,8 +365,9 @@ class ProjectsFacadeTest {
         );
         var mockProjects = Map.of("C", new ProjectInfo("C", Collections.emptyList()));
 
-        when(azureGraphClient.getUserEmail(accessToken)).thenReturn(userEmail);
-        when(azureGraphClient.getUserGroups(accessToken)).thenReturn(azureGroups);
+        when(graphTokenService.getGraphToken(accessToken)).thenReturn(graphToken);
+        when(azureGraphClient.getUserEmail(graphToken)).thenReturn(userEmail);
+        when(azureGraphClient.getUserGroups(graphToken)).thenReturn(azureGroups);
         when(openShiftProjectService.fetchProjects()).thenReturn(edpProjectsInfo);
         when(edpProjectsService.filterProjects(azureGroups, edpProjectsInfo)).thenReturn(new HashSet<>(edpProjects));
         when(mocksService.getProjectsAndClusters(userEmail)).thenReturn(mockProjects);
@@ -376,6 +390,7 @@ class ProjectsFacadeTest {
     void givenUnknownClusterInProjects_whenGetProjects_thenThrowsIllegalArgumentException() {
         // given
         var accessToken = "token";
+        var graphToken = "graph-token";
         var userEmail = "user@example.com";
         var azureGroups = new HashSet<>(List.of("g1"));
 
@@ -384,8 +399,9 @@ class ProjectsFacadeTest {
         // One project has an unknown cluster that is NOT in the mapper
         var edpProjects = List.of(new ProjectInfo("BAD", List.of("unknown-cluster")));
 
-        when(azureGraphClient.getUserEmail(accessToken)).thenReturn(userEmail);
-        when(azureGraphClient.getUserGroups(accessToken)).thenReturn(azureGroups);
+        when(graphTokenService.getGraphToken(accessToken)).thenReturn(graphToken);
+        when(azureGraphClient.getUserEmail(graphToken)).thenReturn(userEmail);
+        when(azureGraphClient.getUserGroups(graphToken)).thenReturn(azureGroups);
         when(openShiftProjectService.fetchProjects()).thenReturn(edpProjectsInfo);
         when(edpProjectsService.filterProjects(azureGroups, edpProjectsInfo)).thenReturn(new HashSet<>(edpProjects));
         when(mocksService.getProjectsAndClusters(userEmail)).thenReturn(Collections.emptyMap());
@@ -400,6 +416,7 @@ class ProjectsFacadeTest {
     void givenMultipleClustersForProject_whenGetProjects_thenClustersAreMergedAndSanitized() {
         // given
         var accessToken = "token";
+        var graphToken = "graph-token";
         var userEmail = "user@example.com";
         var azureGroups = new HashSet<>(List.of("g1"));
 
@@ -409,8 +426,9 @@ class ProjectsFacadeTest {
                 new ProjectInfo("P1", List.of("us-test"))
         );
 
-        when(azureGraphClient.getUserEmail(accessToken)).thenReturn(userEmail);
-        when(azureGraphClient.getUserGroups(accessToken)).thenReturn(azureGroups);
+        when(graphTokenService.getGraphToken(accessToken)).thenReturn(graphToken);
+        when(azureGraphClient.getUserEmail(graphToken)).thenReturn(userEmail);
+        when(azureGraphClient.getUserGroups(graphToken)).thenReturn(azureGroups);
         when(openShiftProjectService.fetchProjects()).thenReturn(edpProjectsInfo);
         when(edpProjectsService.filterProjects(azureGroups, edpProjectsInfo)).thenReturn(new HashSet<>(edpProjects));
         when(mocksService.getProjectsAndClusters(userEmail)).thenReturn(Collections.emptyMap());
