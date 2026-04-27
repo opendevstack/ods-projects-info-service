@@ -6,6 +6,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.opendevstack.projects_info_service.configuration.CacheConfiguration;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.interceptor.SimpleKeyGenerator;
@@ -14,6 +15,7 @@ import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.lang.reflect.Method;
 
@@ -25,6 +27,8 @@ import java.lang.reflect.Method;
 public class CacheableWithFallbackAspect {
 
     private static final String EMPTY_STRING = "";
+
+    @Qualifier(CacheConfiguration.CUSTOM_CACHE_MANAGER_NAME)
     private final CacheManager cacheManager;
 
     @Around("@annotation(cacheableWithFallback)")
