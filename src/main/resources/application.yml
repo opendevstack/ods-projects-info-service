@@ -77,6 +77,7 @@ cluster:
   mapper:
     us-test: ${CLUSTER_MAPPER_US_TEST}
     eu: ${CLUSTER_MAPPER_EU}
+    eu2: ${CLUSTER_MAPPER_EU2}
     us: ${CLUSTER_MAPPER_US}
     cn: ${CLUSTER_MAPPER_CN}
     inh: ${CLUSTER_MAPPER_INH}
@@ -139,6 +140,9 @@ openshift:
       eu-dev:
         url: ${OPENSHIFT_EU_DEV_URL}
         token: ${OPENSHIFT_EU_DEV_TOKEN}
+      eu-dev2:
+        url: ${OPENSHIFT_EU_DEV2_URL}
+        token: ${OPENSHIFT_EU_DEV2_TOKEN}
       us-dev:
         url: ${OPENSHIFT_US_DEV_URL}
         token: ${OPENSHIFT_US_DEV_TOKEN}
@@ -160,6 +164,7 @@ platforms:
   clusters:
     us-test: ${PLATFORMS_US_TEST_CLUSTER}
     eu-dev: ${PLATFORMS_EU_CLUSTER}
+    eu-dev2: ${PLATFORMS_EU2_CLUSTER}
     us-dev: ${PLATFORMS_US_CLUSTER}
     cn-dev: ${PLATFORMS_CN_CLUSTER}
     inh-dev: ${PLATFORMS_INH_CLUSTER}
