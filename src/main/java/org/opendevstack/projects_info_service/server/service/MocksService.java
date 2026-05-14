@@ -91,8 +91,6 @@ public class MocksService {
 
             return Stream.of(projects)
                     .map(String::trim)
-                    .map(this::extractProjectAndCluster)
-                    .map(Map.Entry::getKey)
                     .collect(Collectors.toSet());
         }
     }
