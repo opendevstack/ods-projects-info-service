@@ -84,7 +84,7 @@ dependencies {
 
     implementation 'com.github.ben-manes.caffeine:caffeine:3.2.2'
 
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.11'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.11'
     implementation 'org.openapitools:jackson-databind-nullable:0.2.7'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
 
@@ -93,6 +93,9 @@ dependencies {
     implementation 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    compileOnly "org.jspecify:jspecify:1.0.0"
+    annotationProcessor "org.jspecify:jspecify:1.0.0"
 
     // Testing dependencies
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -166,7 +169,7 @@ openApiGenerate {
             generateBuilders     : "true",
             useSpringBoot3       : "true",
             useSpringController  : "true",
-            useSwaggerUI         : "true",
+            useSwaggerUI         : "false",
             hideGenerationTimestamp: "true"
     ]
 }
