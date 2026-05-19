@@ -6,11 +6,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.opendevstack.projects_info_service.configuration.ClusterConfiguration;
 import org.opendevstack.projects_info_service.server.client.AzureGraphClient;
 import org.opendevstack.projects_info_service.server.client.ProjectWhitelistYmlClient;
-import org.opendevstack.projects_info_service.server.dto.*;
-import org.opendevstack.projects_info_service.server.model.*;
+import org.opendevstack.projects_info_service.server.dto.Link;
+import org.opendevstack.projects_info_service.server.dto.ProjectInfo;
+import org.opendevstack.projects_info_service.server.dto.ProjectInfoMother;
+import org.opendevstack.projects_info_service.server.dto.ProjectPlatforms;
+import org.opendevstack.projects_info_service.server.dto.SectionMother;
+import org.opendevstack.projects_info_service.server.model.OpenshiftProjectCluster;
+import org.opendevstack.projects_info_service.server.model.OpenshiftProjectClusterMother;
+import org.opendevstack.projects_info_service.server.model.PlatformMother;
+import org.opendevstack.projects_info_service.server.model.PlatformsWithTitleMother;
+import org.opendevstack.projects_info_service.server.model.ProjectsWhitelisted;
 import org.opendevstack.projects_info_service.server.security.GroupValidatorService;
 import org.opendevstack.projects_info_service.server.service.EdpProjectsService;
 import org.opendevstack.projects_info_service.server.service.GraphTokenService;
@@ -43,9 +50,6 @@ class ProjectsFacadeTest {
     private MocksService mocksService;
 
     @Mock
-    private ClusterConfiguration clusterConfiguration;
-
-    @Mock
     private PlatformService platformService;
 
     @Mock
@@ -69,8 +73,6 @@ class ProjectsFacadeTest {
                 "EU", "eu-dev, eu-aws-west1, Europe",
                 "MOTHER", "mother-cluster, mother-cluster-1, mother-cluster-2"
         );
-
-        when(clusterConfiguration.getMapper()).thenReturn(clusterConfigurationMapper);
 
         // when
         projectsFacade.initializeClusterMapper();

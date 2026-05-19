@@ -1,5 +1,6 @@
 package org.opendevstack.projects_info_service.server.facade;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.opendevstack.projects_info_service.server.annotations.CacheableWithFallback;
@@ -44,6 +45,8 @@ public class ProjectsFacade {
 
     private final GroupValidatorService groupValidatorService;
 
+    private Map<String, String> clusterMapper;
+
     private final ProjectWhitelistYmlClient projectWhitelistYmlClient;
 
     private final GraphTokenService graphTokenService;
@@ -64,6 +67,24 @@ public class ProjectsFacade {
         this.groupValidatorService = groupValidatorService;
         this.projectWhitelistYmlClient = projectWhitelistYmlClient;
         this.graphTokenService = graphTokenService;
+    }
+
+    @PostConstruct
+    void initializeClusterMapper() {
+        Map<String, String> result = new HashMap<>();
+
+        result.put("cn-dev", "cn");
+        result.put("eu2", "eu2");
+        result.put("dev", "eu");
+        result.put("China", "cn");
+        result.put("us-aws-east1", "us");
+        result.put("Europe", "eu");
+        result.put("us-dev", "us");
+        result.put("us-test", "us-test");
+        result.put("eu-dev", "eu");
+        result.put("inh-dev", "inh");
+
+        this.clusterMapper = result;
     }
 
     @CacheableWithFallback(primary = "projectsInfoCache", fallback = "projectsInfoCache-fallback", defaultValue = "T(java.util.Collections).emptyMap()")
