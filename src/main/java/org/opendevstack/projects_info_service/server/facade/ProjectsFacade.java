@@ -75,7 +75,6 @@ public class ProjectsFacade {
 
         result.put("cn-dev", "cn");
         result.put("eu2", "eu2");
-        result.put("dev", "eu");
         result.put("China", "cn");
         result.put("us-aws-east1", "us");
         result.put("Europe", "eu");

@@ -66,14 +66,6 @@ class ProjectsFacadeTest {
 
     @BeforeEach
     void setUp() {
-        // given
-        Map<String, String> clusterConfigurationMapper = Map.of(
-                "US_TEST", "us-test",
-                "US", "us-dev, us-aws-east1",
-                "EU", "eu-dev, eu-aws-west1, Europe",
-                "MOTHER", "mother-cluster, mother-cluster-1, mother-cluster-2"
-        );
-
         // when
         projectsFacade.initializeClusterMapper();
     }
@@ -87,7 +79,7 @@ class ProjectsFacadeTest {
         var azureGroups = new HashSet<>(List.of("group1", "group2", "group3"));
         var edpProjectsInfo = List.of(
                 new OpenshiftProjectCluster("edpc", "eu_dev"),
-                new OpenshiftProjectCluster("devstack", "us_test")
+                new OpenshiftProjectCluster("devstack", "us-test")
         );
 
         var edpProjects = List.of(new ProjectInfo("ATLAS", Collections.emptyList()), new ProjectInfo("EDPP", Collections.emptyList()));
@@ -144,7 +136,7 @@ class ProjectsFacadeTest {
         assertThat(projects.keySet()).hasSize(2)
                 .containsExactly("ATLAS", "ZHOR");
         assertThat(projects.get("ATLAS").getClusters()).isNotNull()
-                .containsExactly("EU", "US");
+                .containsExactly("eu", "us");
     }
 
     @Test
@@ -176,7 +168,7 @@ class ProjectsFacadeTest {
         // then
         assertThat(projects).isNotNull();
         assertThat(projects.get("ATLAS").getClusters()).isNotNull()
-                .containsExactly("US_TEST");
+                .containsExactly("us-test");
     }
 
     @Test
@@ -321,7 +313,7 @@ class ProjectsFacadeTest {
         var azureGroups = new HashSet<>(List.of("g1", "g2"));
         var edpProjectsInfo = List.of(
                 new OpenshiftProjectCluster("edpc", "eu_dev"),
-                new OpenshiftProjectCluster("devstack", "us_test")
+                new OpenshiftProjectCluster("devstack", "us-test")
         );
 
         var edpProjects = List.of(
@@ -440,7 +432,7 @@ class ProjectsFacadeTest {
 
         // then
         assertThat(projects).containsKey("P1");
-        assertThat(projects.get("P1").getClusters()).containsExactly("EU", "US_TEST");
+        assertThat(projects.get("P1").getClusters()).containsExactly("eu", "us-test");
     }
 
     @Test
@@ -462,7 +454,7 @@ class ProjectsFacadeTest {
     void givenClusterNotConfiguredInPlatformService_whenGetProjectPlatforms_thenFallbackToNextCluster() {
         // given
         var projectKey = "P1";
-        // mapped to US_TEST and EU
+        // mapped to us-test and EU
         var edpProjectsInfo = List.of(
                 new OpenshiftProjectCluster(projectKey, "us-test"),
                 new OpenshiftProjectCluster(projectKey, "eu-dev")
