@@ -73,15 +73,6 @@ mock:
   groups:
     users: ${MOCK_USER_GROUPS}
 
-cluster:
-  mapper:
-    us-test: ${CLUSTER_MAPPER_US_TEST}
-    eu: ${CLUSTER_MAPPER_EU}
-    eu2: ${CLUSTER_MAPPER_EU2}
-    us: ${CLUSTER_MAPPER_US}
-    cn: ${CLUSTER_MAPPER_CN}
-    inh: ${CLUSTER_MAPPER_INH}
-
 custom:
   cache:
     specs:

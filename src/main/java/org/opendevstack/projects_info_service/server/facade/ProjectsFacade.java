@@ -1,9 +1,7 @@
 package org.opendevstack.projects_info_service.server.facade;
 
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.opendevstack.projects_info_service.configuration.ClusterConfiguration;
 import org.opendevstack.projects_info_service.server.annotations.CacheableWithFallback;
 import org.opendevstack.projects_info_service.server.client.AzureGraphClient;
 import org.opendevstack.projects_info_service.server.client.ProjectWhitelistYmlClient;
@@ -21,7 +19,13 @@ import org.opendevstack.projects_info_service.server.service.OpenShiftProjectSer
 import org.opendevstack.projects_info_service.server.service.PlatformService;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -40,10 +44,6 @@ public class ProjectsFacade {
 
     private final GroupValidatorService groupValidatorService;
 
-    private final ClusterConfiguration clusterConfiguration;
-
-    private Map<String, String> clusterMapper;
-
     private final ProjectWhitelistYmlClient projectWhitelistYmlClient;
 
     private final GraphTokenService graphTokenService;
@@ -54,7 +54,6 @@ public class ProjectsFacade {
                           MocksService mocksService,
                           PlatformService platformService,
                           GroupValidatorService groupValidatorService,
-                          ClusterConfiguration clusterConfiguration,
                           ProjectWhitelistYmlClient projectWhitelistYmlClient,
                           GraphTokenService graphTokenService) {
         this.azureGraphClient = azureGraphClient;
@@ -63,26 +62,8 @@ public class ProjectsFacade {
         this.mocksService = mocksService;
         this.platformService = platformService;
         this.groupValidatorService = groupValidatorService;
-        this.clusterConfiguration = clusterConfiguration;
         this.projectWhitelistYmlClient = projectWhitelistYmlClient;
         this.graphTokenService = graphTokenService;
-    }
-
-    @PostConstruct
-    void initializeClusterMapper() {
-        var mapper = clusterConfiguration.getMapper();
-
-        Map<String, String> result = new HashMap<>();
-
-        mapper.forEach((key, value) -> {
-            var values = value.split(",");
-
-            for (String val : values) {
-                result.put(val.trim(), key);
-            }
-        });
-
-        this.clusterMapper = result;
     }
 
     @CacheableWithFallback(primary = "projectsInfoCache", fallback = "projectsInfoCache-fallback", defaultValue = "T(java.util.Collections).emptyMap()")
