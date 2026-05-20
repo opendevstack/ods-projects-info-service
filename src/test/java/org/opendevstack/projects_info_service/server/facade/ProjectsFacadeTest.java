@@ -1,6 +1,5 @@
 package org.opendevstack.projects_info_service.server.facade;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -31,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -63,12 +61,6 @@ class ProjectsFacadeTest {
 
     @InjectMocks
     private ProjectsFacade projectsFacade;
-
-    @BeforeEach
-    void setUp() {
-        // when
-        projectsFacade.initializeClusterMapper();
-    }
 
     @Test
     void givenAnAzureToken_whenGetProjects_thenReturnListOfProjects() {
@@ -103,40 +95,6 @@ class ProjectsFacadeTest {
                 .contains(edpProjects.get(0).getProjectKey())
                 .contains(edpProjects.get(1).getProjectKey())
                 .contains(mockProjectKey);
-    }
-
-    @Test
-    void givenAnAzureToken_andThereAreProjectsWithClusters_whenGetProjects_thenReturnListOfProjects_andClustersAreMapped() {
-        // given
-        var userEmail = "pepito";
-        var accessToken = "sample";
-        var graphToken = "graph-token";
-        var azureGroups = new HashSet<>(List.of("group1"));
-        var edpProjectsInfo = List.of(
-                new OpenshiftProjectCluster("edpc", "eu_dev")
-        );
-
-        var edpProjects = List.of(
-                new ProjectInfo("ZHOR", List.of("us-test", "Europe")),
-                new ProjectInfo("ATLAS", List.of("us-aws-east1", "Europe"))
-        );
-
-        when(graphTokenService.getGraphToken(accessToken)).thenReturn(graphToken);
-        when(azureGraphClient.getUserEmail(graphToken)).thenReturn(userEmail);
-        when(azureGraphClient.getUserGroups(graphToken)).thenReturn(azureGroups);
-        when(openShiftProjectService.fetchProjects()).thenReturn(edpProjectsInfo);
-        when(edpProjectsService.filterProjects(azureGroups, edpProjectsInfo)).thenReturn(new HashSet<>(edpProjects));
-        when(mocksService.getProjectsAndClusters(userEmail)).thenReturn(Collections.emptyMap());
-
-        // when
-        Map<String, ProjectInfo> projects = projectsFacade.getProjects(accessToken);
-
-        // then
-        assertThat(projects).isNotNull();
-        assertThat(projects.keySet()).hasSize(2)
-                .containsExactly("ATLAS", "ZHOR");
-        assertThat(projects.get("ATLAS").getClusters()).isNotNull()
-                .containsExactly("eu", "us");
     }
 
     @Test
@@ -381,33 +339,7 @@ class ProjectsFacadeTest {
     }
 
     @Test
-    void givenUnknownClusterInProjects_whenGetProjects_thenThrowsIllegalArgumentException() {
-        // given
-        var accessToken = "token";
-        var graphToken = "graph-token";
-        var userEmail = "user@example.com";
-        var azureGroups = new HashSet<>(List.of("g1"));
-
-        var edpProjectsInfo = List.of(new OpenshiftProjectCluster("any", "eu_dev"));
-
-        // One project has an unknown cluster that is NOT in the mapper
-        var edpProjects = List.of(new ProjectInfo("BAD", List.of("unknown-cluster")));
-
-        when(graphTokenService.getGraphToken(accessToken)).thenReturn(graphToken);
-        when(azureGraphClient.getUserEmail(graphToken)).thenReturn(userEmail);
-        when(azureGraphClient.getUserGroups(graphToken)).thenReturn(azureGroups);
-        when(openShiftProjectService.fetchProjects()).thenReturn(edpProjectsInfo);
-        when(edpProjectsService.filterProjects(azureGroups, edpProjectsInfo)).thenReturn(new HashSet<>(edpProjects));
-        when(mocksService.getProjectsAndClusters(userEmail)).thenReturn(Collections.emptyMap());
-
-        // when // then
-        assertThatThrownBy(() -> projectsFacade.getProjects(accessToken))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("is not recognized");
-    }
-
-    @Test
-    void givenMultipleClustersForProject_whenGetProjects_thenClustersAreMergedAndSanitized() {
+    void givenMultipleClustersForProject_whenGetProjects_thenClustersAreMerged() {
         // given
         var accessToken = "token";
         var graphToken = "graph-token";
@@ -432,7 +364,7 @@ class ProjectsFacadeTest {
 
         // then
         assertThat(projects).containsKey("P1");
-        assertThat(projects.get("P1").getClusters()).containsExactly("eu", "us-test");
+        assertThat(projects.get("P1").getClusters()).containsExactly("eu-dev", "us-test");
     }
 
     @Test
@@ -479,6 +411,6 @@ class ProjectsFacadeTest {
         // then
         assertThat(result).isNotNull();
         assertThat(result.getSections()).hasSize(2); // First section + expectedSection
-        assertThat(result.getSections().get(1)).isEqualTo(expectedSections.get(0));
+        assertThat(result.getSections().get(1)).isEqualTo(expectedSections.getFirst());
     }
 }

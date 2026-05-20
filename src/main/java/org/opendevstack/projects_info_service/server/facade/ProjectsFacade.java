@@ -1,6 +1,5 @@
 package org.opendevstack.projects_info_service.server.facade;
 
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.opendevstack.projects_info_service.server.annotations.CacheableWithFallback;
@@ -26,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -44,8 +42,6 @@ public class ProjectsFacade {
     private final PlatformService platformService;
 
     private final GroupValidatorService groupValidatorService;
-
-    private Map<String, String> clusterMapper;
 
     private final ProjectWhitelistYmlClient projectWhitelistYmlClient;
 
@@ -67,23 +63,6 @@ public class ProjectsFacade {
         this.groupValidatorService = groupValidatorService;
         this.projectWhitelistYmlClient = projectWhitelistYmlClient;
         this.graphTokenService = graphTokenService;
-    }
-
-    @PostConstruct
-    void initializeClusterMapper() {
-        Map<String, String> result = new HashMap<>();
-
-        result.put("cn-dev", "cn");
-        result.put("eu2", "eu2");
-        result.put("China", "cn");
-        result.put("us-aws-east1", "us");
-        result.put("Europe", "eu");
-        result.put("us-dev", "us");
-        result.put("us-test", "us-test");
-        result.put("eu-dev", "eu");
-        result.put("inh-dev", "inh");
-
-        this.clusterMapper = result;
     }
 
     @CacheableWithFallback(primary = "projectsInfoCache", fallback = "projectsInfoCache-fallback", defaultValue = "T(java.util.Collections).emptyMap()")
@@ -153,23 +132,23 @@ public class ProjectsFacade {
             mergedClusters.addAll(
                     edpProjectsInfo.stream()
                             .map(OpenshiftProjectCluster::getCluster)
+                            .filter(StringUtils::isNotBlank)
                             .toList()
             );
         }
 
         mergedClusters.addAll(mockClusters);
-        var sanitizedClusters = sanitizeClusters(mergedClusters);
 
-        if (sanitizedClusters.isEmpty()) {
+        if (mergedClusters.isEmpty()) {
             log.debug("Project not found: {}", projectKey);
 
             return null;
         } else {
-            log.debug("Project found: {}, returning ProjectPlatforms for clusters: {}.", projectKey, sanitizedClusters);
-            var clusters = getClusterBySanitizedValue(clusterMapper, sanitizedClusters.getFirst());
-            List<Section> sections = getSectionFromFirstAvailableCluster(projectKey, clusters);
+            log.debug("Project found: {}, returning ProjectPlatforms for clusters: {}.", projectKey, mergedClusters);
+
+            List<Section> sections = getSectionFromFirstAvailableCluster(projectKey, mergedClusters);
             var disabledPlatforms = platformService.getDisabledPlatforms(projectKey);
-            var platformsWithTitle = getPlatformsWithTitleFromFirstAvailableCluster(projectKey, clusters);
+            var platformsWithTitle = getPlatformsWithTitleFromFirstAvailableCluster(projectKey, mergedClusters);
 
             var firstSection = componseFirstSection(platformsWithTitle, disabledPlatforms);
 
@@ -202,7 +181,7 @@ public class ProjectsFacade {
     private Map<String, ProjectInfo> sanitize(Map<String, ProjectInfo> projectInfoMap) {
         Map<String, ProjectInfo> result = new TreeMap<>(); // Using treeMap so the result is sorted by project key
 
-        projectInfoMap.forEach((key, value) -> result.put(key, new ProjectInfo(key, sanitizeClusters(value.getClusters()))));
+        projectInfoMap.forEach((key, value) -> result.put(key, new ProjectInfo(key, value.getClusters())));
 
         var projectWhitelistedConfiguration = projectWhitelistYmlClient.fetch();
 
@@ -214,31 +193,6 @@ public class ProjectsFacade {
         }
 
         return result;
-    }
-
-    private List<String> sanitizeClusters(List<String> clusters) {
-        var sanitizedClusters = new TreeSet<String>(); // Keep clusters unique and sorted
-
-        for (String cluster : clusters) {
-            if (StringUtils.EMPTY.equals(cluster)) {
-                log.debug("No cluster provided, ignoring this one");
-            } else {
-                if (clusterMapper.containsKey(cluster)) {
-                    sanitizedClusters.add(clusterMapper.get(cluster));
-                } else {
-                    throw new IllegalArgumentException("Cluster " + cluster + " is not recognized.");
-                }
-            }
-        }
-
-        return new ArrayList<>(sanitizedClusters);
-    }
-
-    private <K, V> List<K> getClusterBySanitizedValue(Map<K, V> map, V value) {
-        return map.entrySet().stream()
-                .filter(entry -> Objects.equals(entry.getValue(), value))
-                .map(Map.Entry::getKey)
-                .toList();
     }
 
     private List<Section> getSectionFromFirstAvailableCluster(String projectKey, List<String> clusters) {

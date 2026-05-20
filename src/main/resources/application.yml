@@ -128,19 +128,19 @@ openshift:
       us-test:
         url: ${OPENSHIFT_US_TEST_URL}
         token: ${OPENSHIFT_US_TEST_TOKEN}
-      eu-dev:
+      eu:
         url: ${OPENSHIFT_EU_DEV_URL}
         token: ${OPENSHIFT_EU_DEV_TOKEN}
-      eu-dev2:
+      eu2:
         url: ${OPENSHIFT_EU_DEV2_URL}
         token: ${OPENSHIFT_EU_DEV2_TOKEN}
-      us-dev:
+      us:
         url: ${OPENSHIFT_US_DEV_URL}
         token: ${OPENSHIFT_US_DEV_TOKEN}
-      cn-dev:
+      cn:
         url: ${OPENSHIFT_CN_DEV_URL}
         token: ${OPENSHIFT_CN_DEV_TOKEN}
-      inh-dev:
+      inh:
         url: ${OPENSHIFT_INH_DEV_URL}
         token: ${OPENSHIFT_INH_DEV_TOKEN}
     project:
@@ -154,11 +154,11 @@ platforms:
   base-path: ${PLATFORMS_BASE_PATH}
   clusters:
     us-test: ${PLATFORMS_US_TEST_CLUSTER}
-    eu-dev: ${PLATFORMS_EU_CLUSTER}
-    eu-dev2: ${PLATFORMS_EU2_CLUSTER}
-    us-dev: ${PLATFORMS_US_CLUSTER}
-    cn-dev: ${PLATFORMS_CN_CLUSTER}
-    inh-dev: ${PLATFORMS_INH_CLUSTER}
+    eu: ${PLATFORMS_EU_CLUSTER}
+    eu2: ${PLATFORMS_EU2_CLUSTER}
+    us: ${PLATFORMS_US_CLUSTER}
+    cn: ${PLATFORMS_CN_CLUSTER}
+    inh: ${PLATFORMS_INH_CLUSTER}
 
 projects:
   whitelist:
