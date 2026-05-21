@@ -11,7 +11,7 @@ public class ProjectInfoMother {
     public static ProjectInfo of(String projectKey) {
         return ProjectInfo.builder()
                 .projectKey(projectKey)
-                .clusters(List.of("eu-dev", "us-test"))
+                .clusters(List.of("eu", "us-test"))
                 .build();
     }
 }

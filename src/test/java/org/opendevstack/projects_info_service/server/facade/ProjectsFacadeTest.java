@@ -346,9 +346,9 @@ class ProjectsFacadeTest {
         var userEmail = "user@example.com";
         var azureGroups = new HashSet<>(List.of("g1"));
 
-        var edpProjectsInfo = List.of(new OpenshiftProjectCluster("P1", "eu-dev"));
+        var edpProjectsInfo = List.of(new OpenshiftProjectCluster("P1", "eu"));
         var edpProjects = List.of(
-                new ProjectInfo("P1", List.of("eu-dev")),
+                new ProjectInfo("P1", List.of("eu")),
                 new ProjectInfo("P1", List.of("us-test"))
         );
 
@@ -364,7 +364,7 @@ class ProjectsFacadeTest {
 
         // then
         assertThat(projects).containsKey("P1");
-        assertThat(projects.get("P1").getClusters()).containsExactly("eu-dev", "us-test");
+        assertThat(projects.get("P1").getClusters()).containsExactlyInAnyOrder("eu", "us-test");
     }
 
     @Test
@@ -389,7 +389,7 @@ class ProjectsFacadeTest {
         // mapped to us-test and EU
         var edpProjectsInfo = List.of(
                 new OpenshiftProjectCluster(projectKey, "us-test"),
-                new OpenshiftProjectCluster(projectKey, "eu-dev")
+                new OpenshiftProjectCluster(projectKey, "eu")
         );
 
         when(openShiftProjectService.fetchProjects()).thenReturn(edpProjectsInfo);
@@ -399,11 +399,11 @@ class ProjectsFacadeTest {
         when(platformService.getSections(projectKey, "us-test")).thenThrow(new RuntimeException("Not configured"));
         when(platformService.getPlatforms(projectKey, "us-test")).thenThrow(new RuntimeException("Not configured"));
 
-        // eu-dev succeeds
+        // eu succeeds
         var expectedSections = List.of(SectionMother.of());
         var expectedPlatforms = PlatformsWithTitleMother.of();
-        when(platformService.getSections(projectKey, "eu-dev")).thenReturn(expectedSections);
-        when(platformService.getPlatforms(projectKey, "eu-dev")).thenReturn(expectedPlatforms);
+        when(platformService.getSections(projectKey, "eu")).thenReturn(expectedSections);
+        when(platformService.getPlatforms(projectKey, "eu")).thenReturn(expectedPlatforms);
 
         // when
         ProjectPlatforms result = projectsFacade.getProjectPlatforms(projectKey);
