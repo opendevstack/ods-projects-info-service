@@ -2,7 +2,7 @@ package org.opendevstack.projects_info_service.configuration;
 
 import com.azure.spring.cloud.autoconfigure.implementation.aad.filter.AadAppRoleStatelessAuthenticationFilter;
 import lombok.AllArgsConstructor;
-import org.opendevstack.projects_info_service.configuration.aure.ConditionalAadFilter;
+import org.opendevstack.projects_info_service.configuration.azure.ConditionalAadFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;

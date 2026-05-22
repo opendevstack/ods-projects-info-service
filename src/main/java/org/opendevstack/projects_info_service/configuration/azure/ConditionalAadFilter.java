@@ -1,4 +1,4 @@
-package org.opendevstack.projects_info_service.configuration.aure;
+package org.opendevstack.projects_info_service.configuration.azure;
 
 import com.azure.spring.cloud.autoconfigure.implementation.aad.filter.AadAppRoleStatelessAuthenticationFilter;
 import jakarta.servlet.FilterChain;
