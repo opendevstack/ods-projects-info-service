@@ -30,7 +30,7 @@ public class SecurityConfiguration {
 
         RequestMatcher whitelistedEndpoints = new OrRequestMatcher(
                 PathPatternRequestMatcher.withDefaults().matcher("/api-docs/**"),
-                PathPatternRequestMatcher.withDefaults().matcher("v3/api-docs/**"),
+                PathPatternRequestMatcher.withDefaults().matcher("/v3/api-docs/**"),
                 PathPatternRequestMatcher.withDefaults().matcher("/actuator/health"),
                 PathPatternRequestMatcher.withDefaults().matcher("/actuator/mappings"),
                 PathPatternRequestMatcher.withDefaults().matcher("/v1/projects/*/platforms")
