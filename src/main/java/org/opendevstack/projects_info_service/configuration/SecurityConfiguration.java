@@ -45,7 +45,7 @@ public class SecurityConfiguration {
                 )
                 .csrf(CsrfConfigurer::disable) //NOSONAR required for /actuator endpoints, STATELESS prevents CSRF
                 .cors(c -> c.configurationSource(request ->
-                        new CorsConfiguration().applyPermitDefaultValues()))
+                        new CorsConfiguration().applyPermitDefaultValues())) //NOSONAR required for CORS support for browser requests
                 .sessionManagement(configurer ->
                         // Avoid session caching and validation e.g. via JSESSIONID cookie, as we are stateless
                         configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
