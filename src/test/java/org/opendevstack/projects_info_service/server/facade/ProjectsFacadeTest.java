@@ -31,6 +31,9 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import org.mockito.ArgumentCaptor;
+import java.util.Set;
 
 @ExtendWith(MockitoExtension.class)
 class ProjectsFacadeTest {
@@ -365,6 +368,43 @@ class ProjectsFacadeTest {
         // then
         assertThat(projects).containsKey("P1");
         assertThat(projects.get("P1").getClusters()).containsExactlyInAnyOrder("eu", "us-test");
+    }
+
+    @Test
+    void givenAzureAndMockUserGroups_whenGetProjects_thenGroupsAreConcatenatedAndSanitized() {
+        // given
+        var accessToken = "token";
+        var graphToken = "graph-token";
+        var userEmail = "user@example.com";
+
+        var azureGroups = new HashSet<String>();
+        azureGroups.add(" groupA ");
+        azureGroups.add(null);
+        azureGroups.add(" ");
+        azureGroups.add("azureOnly");
+
+        var mockGroups = new HashSet<>(List.of("mock1", " groupA ", "mock2"));
+
+        when(graphTokenService.getGraphToken(accessToken)).thenReturn(graphToken);
+        when(azureGraphClient.getUserGroups(graphToken)).thenReturn(azureGroups);
+        when(azureGraphClient.getUserEmail(graphToken)).thenReturn(userEmail);
+        when(mocksService.getUserGroups(userEmail)).thenReturn(mockGroups);
+
+        // other interactions required by getProjects
+        when(openShiftProjectService.fetchProjects()).thenReturn(Collections.emptyList());
+        when(edpProjectsService.filterProjects(azureGroups, Collections.emptyList())).thenReturn(new HashSet<>());
+        when(mocksService.getProjectsAndClusters(userEmail)).thenReturn(Collections.emptyMap());
+        when(projectWhitelistYmlClient.fetch()).thenReturn(null);
+
+        // when
+        projectsFacade.getProjects(accessToken);
+
+        // then: groupValidatorService.validate should be invoked with concatenated, trimmed and non-blank groups
+        ArgumentCaptor<Set> captor = ArgumentCaptor.forClass(Set.class);
+        verify(groupValidatorService).validate(captor.capture());
+
+        var captured = captor.getValue();
+        assertThat(captured).containsExactlyInAnyOrder("groupA", "azureOnly", "mock1", "mock2");
     }
 
     @Test
