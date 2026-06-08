@@ -69,7 +69,15 @@ public class ProjectsFacade {
     public Map<String, ProjectInfo> getProjects(String token) {
         var graphToken = graphTokenService.getGraphToken(token);
         var azureUserGroups = azureGraphClient.getUserGroups(graphToken);
-        groupValidatorService.validate(azureUserGroups);
+        var mockUserGroups = mocksService.getUserGroups(azureGraphClient.getUserEmail(graphToken));
+
+        var allUserGroups = Stream.concat(azureUserGroups.stream(), mockUserGroups.stream())
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(StringUtils::isNotBlank)
+                .collect(java.util.stream.Collectors.toSet());
+
+        groupValidatorService.validate(allUserGroups);
 
         var userEmail = azureGraphClient.getUserEmail(graphToken);
         var allEdpProjectsInfo = openShiftProjectService.fetchProjects();
