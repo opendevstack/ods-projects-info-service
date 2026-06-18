@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.lang.reflect.Method;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -452,5 +453,85 @@ class ProjectsFacadeTest {
         assertThat(result).isNotNull();
         assertThat(result.getSections()).hasSize(2); // First section + expectedSection
         assertThat(result.getSections().get(1)).isEqualTo(expectedSections.getFirst());
+    }
+
+    // Tests for orderClusters method
+    @Test
+    void givenClusterList_whenOrderClusters_thenReturnClustersInAlphabeticalOrder() throws Exception {
+        // given
+        var clusters = List.of("us-test", "dev");
+
+        // when
+        Method orderClustersMethod = ProjectsFacade.class.getDeclaredMethod("orderClusters", List.class);
+        orderClustersMethod.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        List<String> result = (List<String>) orderClustersMethod.invoke(projectsFacade, clusters);
+
+        // then
+        assertThat(result).isNotNull()
+                .containsExactly("dev", "us-test");
+    }
+
+    @Test
+    void givenClusterListWithMultipleElements_whenOrderClusters_thenReturnClustersInAlphabeticalOrder() throws Exception {
+        // given
+        var clusters = List.of("alpha", "zulu", "bravo", "charlie");
+
+        // when
+        Method orderClustersMethod = ProjectsFacade.class.getDeclaredMethod("orderClusters", List.class);
+        orderClustersMethod.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        List<String> result = (List<String>) orderClustersMethod.invoke(projectsFacade, clusters);
+
+        // then
+        assertThat(result).isNotNull()
+                .containsExactly("alpha", "bravo", "charlie", "zulu" );
+    }
+
+    @Test
+    void givenEmptyClusterList_whenOrderClusters_thenReturnEmptyList() throws Exception {
+        // given
+        var clusters = Collections.<String>emptyList();
+
+        // when
+        Method orderClustersMethod = ProjectsFacade.class.getDeclaredMethod("orderClusters", List.class);
+        orderClustersMethod.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        List<String> result = (List<String>) orderClustersMethod.invoke(projectsFacade, clusters);
+
+        // then
+        assertThat(result).isNotNull().isEmpty();
+    }
+
+    @Test
+    void givenSingleClusterElement_whenOrderClusters_thenReturnSingleElement() throws Exception {
+        // given
+        var clusters = List.of("eu-west");
+
+        // when
+        Method orderClustersMethod = ProjectsFacade.class.getDeclaredMethod("orderClusters", List.class);
+        orderClustersMethod.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        List<String> result = (List<String>) orderClustersMethod.invoke(projectsFacade, clusters);
+
+        // then
+        assertThat(result).isNotNull()
+                .containsExactly("eu-west");
+    }
+
+    @Test
+    void givenClusterListWithMixedCase_whenOrderClusters_thenReturnClustersInAlphabeticalOrder() throws Exception {
+        // given
+        var clusters = List.of("Production", "development", "STAGING", "Uat");
+
+        // when
+        Method orderClustersMethod = ProjectsFacade.class.getDeclaredMethod("orderClusters", List.class);
+        orderClustersMethod.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        List<String> result = (List<String>) orderClustersMethod.invoke(projectsFacade, clusters);
+
+        // then
+        assertThat(result).isNotNull()
+                .containsExactly("development", "Production", "STAGING", "Uat");
     }
 }
