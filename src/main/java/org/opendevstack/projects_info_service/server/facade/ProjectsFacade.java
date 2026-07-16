@@ -189,7 +189,7 @@ public class ProjectsFacade {
     private Map<String, ProjectInfo> sanitize(Map<String, ProjectInfo> projectInfoMap) {
         Map<String, ProjectInfo> result = new TreeMap<>(); // Using treeMap so the result is sorted by project key
 
-        projectInfoMap.forEach((key, value) -> result.put(key, new ProjectInfo(key, value.getClusters())));
+        projectInfoMap.forEach((key, value) -> result.put(key, new ProjectInfo(key, orderClusters(value.getClusters()))));
 
         var projectWhitelistedConfiguration = projectWhitelistYmlClient.fetch();
 
@@ -201,6 +201,20 @@ public class ProjectsFacade {
         }
 
         return result;
+    }
+
+    private List<String> orderClusters(List<String> clusters) {
+        return clusters.stream()
+                .sorted((a, b) -> {
+                    // Case-insensitive comparison
+                    int caseInsensitiveResult = a.compareToIgnoreCase(b);
+                    if (caseInsensitiveResult != 0) {
+                        return caseInsensitiveResult;
+                    }
+                    // If equal ignoring case, uppercase comes first
+                    return Boolean.compare(Character.isUpperCase(b.charAt(0)), Character.isUpperCase(a.charAt(0)));
+                })
+                .toList();
     }
 
     private List<Section> getSectionFromFirstAvailableCluster(String projectKey, List<String> clusters) {
