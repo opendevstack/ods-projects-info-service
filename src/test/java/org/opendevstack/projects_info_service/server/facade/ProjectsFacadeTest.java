@@ -427,18 +427,18 @@ class ProjectsFacadeTest {
     void givenClusterNotConfiguredInPlatformService_whenGetProjectPlatforms_thenFallbackToNextCluster() {
         // given
         var projectKey = "P1";
-        // mapped to us-test and EU
+        // mapped to a sorted first cluster that fails, then a fallback cluster that succeeds
         var edpProjectsInfo = List.of(
-                new OpenshiftProjectCluster(projectKey, "us-test"),
+                new OpenshiftProjectCluster(projectKey, "apac"),
                 new OpenshiftProjectCluster(projectKey, "eu")
         );
 
         when(openShiftProjectService.fetchProjects()).thenReturn(edpProjectsInfo);
         when(platformService.getDisabledPlatforms(projectKey)).thenReturn(Collections.emptyList());
 
-        // us-test fails
-        when(platformService.getSections(projectKey, "us-test")).thenThrow(new RuntimeException("Not configured"));
-        when(platformService.getPlatforms(projectKey, "us-test")).thenThrow(new RuntimeException("Not configured"));
+        // apac fails
+        when(platformService.getSections(projectKey, "apac")).thenThrow(new RuntimeException("Not configured"));
+        when(platformService.getPlatforms(projectKey, "apac")).thenThrow(new RuntimeException("Not configured"));
 
         // eu succeeds
         var expectedSections = List.of(SectionMother.of());
