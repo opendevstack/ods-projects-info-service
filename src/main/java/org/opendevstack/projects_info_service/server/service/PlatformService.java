@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.opendevstack.projects_info_service.server.client.AzureGraphClient.UNABLE_TO_GET_GROUPS_FALLBACK_GROUP;
@@ -53,16 +52,13 @@ public class PlatformService {
             var titleAndPlatforms = platformsYmlClient.fetchPlatformsFromYaml(url);
             var platforms = titleAndPlatforms.getValue();
 
-            platforms.forEach(platform -> {
-                var resolvedUrl = Optional.ofNullable(resolvePlatformUrl(platform.getUrl(), projectKey)).orElse("");
-
-                platform.setUrl(resolvedUrl);
-            });
-
             var platformsMap = platforms.stream()
                     .collect(Collectors.toMap(
                             Platform::getId,
-                            Function.identity(),
+                            platform -> {
+                                var resolvedUrl = Optional.ofNullable(resolvePlatformUrl(platform.getUrl(), projectKey)).orElse("");
+                                return platform.toBuilder().url(resolvedUrl).build();
+                            },
                             (existing, replacement) -> existing, // merge function
                             LinkedHashMap::new // supplier to preserve order
                     ));

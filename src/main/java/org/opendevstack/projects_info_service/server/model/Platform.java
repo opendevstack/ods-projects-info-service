@@ -6,7 +6,7 @@ import lombok.*;
 @AllArgsConstructor
 @Getter
 @Setter
-@Builder
+@Builder(toBuilder = true)
 public class Platform {
     private String id;
     private String label;

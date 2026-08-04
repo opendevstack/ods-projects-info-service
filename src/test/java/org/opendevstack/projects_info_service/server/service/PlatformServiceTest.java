@@ -153,10 +153,11 @@ class PlatformServiceTest {
                 .extracting("title").isEqualTo("Simple title");
 
         assertThat(result.getPlatforms()).isNotNull()
-                .hasSize(3)
-                .containsEntry("jira", jiraPlatform)
-                .containsEntry("gitlab", gitlabPlatform)
-                .containsEntry("sonar", sonarPlatform);
+                .hasSize(3);
+
+        assertThat(result.getPlatforms().get("jira").getUrl()).isEqualTo("https://jira.example.com");
+        assertThat(result.getPlatforms().get("gitlab").getUrl()).isEqualTo("https://gitlab.example.com/testproject");
+        assertThat(result.getPlatforms().get("sonar").getUrl()).isEqualTo("https://sonar.example.com/TESTPROJECT/dashboard");
 
     }
 
@@ -188,8 +189,9 @@ class PlatformServiceTest {
 
         // then
         assertThat(result.getPlatforms()).isNotNull()
-                .hasSize(1)
-                .containsEntry("testinghub", testingHubPlatform);
+                .hasSize(1);
+
+        assertThat(result.getPlatforms().get("testinghub").getUrl()).isEqualTo("https://testinghub.example.com/project/12345");
     }
 
     @Test
