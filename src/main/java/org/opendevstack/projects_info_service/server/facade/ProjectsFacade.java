@@ -152,6 +152,7 @@ public class ProjectsFacade {
 
             return null;
         } else {
+            mergedClusters = new ArrayList<>(orderClusters(mergedClusters));
             log.debug("Project found: {}, returning ProjectPlatforms for clusters: {}.", projectKey, mergedClusters);
 
             List<Section> sections = getSectionFromFirstAvailableCluster(projectKey, mergedClusters);
