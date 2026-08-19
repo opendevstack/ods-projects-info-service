@@ -15,6 +15,7 @@
   </JavaCodeStyleSettings>
 
   <codeStyleSettings language="JAVA">
+    <option name="RIGHT_MARGIN" value="120" />
     <option name="INDENT_SIZE" value="4" />
     <option name="TAB_SIZE" value="4" />
     <option name="CONTINUATION_INDENT_SIZE" value="8" />
@@ -42,5 +43,3 @@
     <option name="BLANK_LINES_AFTER_IMPORTS" value="1" />
   </codeStyleSettings>
 </code_scheme>
-
-
