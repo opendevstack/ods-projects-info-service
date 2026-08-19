@@ -13,7 +13,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -22,9 +26,13 @@ import java.util.Iterator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AzureGraphClientTest {
@@ -47,6 +55,7 @@ class AzureGraphClientTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void givenValidAccessToken_whenGetUserGroups_thenReturnGroups() {
         // given
         var accessToken = "testAccessToken";
@@ -63,9 +72,10 @@ class AzureGraphClientTest {
                 eq(String.class)
         )).thenReturn( // @odata.nextLink
                 new ResponseEntity<>(
-                "{\"@odata.nextLink\":\"https://graph.microsoft.com/v1.0/me/memberOf?$top=10\", \"value\":[{\"displayName\":\"Group1\"},{\"displayName\":\"Group2\"}]}",
-                HttpStatus.OK
-        )).thenReturn(
+                        "{\"@odata.nextLink\":\"https://graph.microsoft.com/v1.0/me/memberOf?$top=10\","
+                                + " \"value\":[{\"displayName\":\"Group1\"},{\"displayName\":\"Group2\"}]}",
+                        HttpStatus.OK
+                )).thenReturn(
                 new ResponseEntity<>(
                         "{\"value\":[{\"displayName\":\"Group3\"},{\"displayName\":\"Group4\"}]}",
                         HttpStatus.OK
@@ -83,7 +93,12 @@ class AzureGraphClientTest {
         assertThat(headers.getFirst(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer " + accessToken);
         assertThat(userGroups).contains("Group1", "Group2", "Group3", "Group4");
 
-        verify(restTemplate, times(2)).exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class));
+        verify(restTemplate, times(2)).exchange(
+                anyString(),
+                eq(HttpMethod.GET),
+                any(HttpEntity.class),
+                eq(String.class)
+        );
     }
 
     @Test
@@ -99,7 +114,7 @@ class AzureGraphClientTest {
                 any(String.class),
                 any(HttpMethod.class),
                 any(HttpEntity.class),
-                any(Class.class)
+                eq(String.class)
         )).thenReturn(new ResponseEntity<>(
                 "{\"invalid\":\"response\"}",
                 HttpStatus.OK
@@ -113,7 +128,7 @@ class AzureGraphClientTest {
     }
 
     @Test
-    void givenValidAccessToken_whenGetUserGroups_andResponseIsNotValid_thenThrowsInvalidContentProcessException() {
+    void givenInvalidGroupsJson_whenGetUserGroups_thenThrowsInvalidContentProcessException() {
         // given
         var accessToken = "testAccessToken";
 
@@ -121,14 +136,17 @@ class AzureGraphClientTest {
                 any(String.class),
                 any(HttpMethod.class),
                 any(HttpEntity.class),
-                any(Class.class)
+                eq(String.class)
         )).thenReturn(new ResponseEntity<>(
                 "not a valid json",
                 HttpStatus.OK
         ));
 
         // when
-        var invalidContentProcessException = assertThrows(InvalidContentProcessException.class, () -> azureGraphClient.getUserGroups(accessToken));
+        var invalidContentProcessException = assertThrows(
+                InvalidContentProcessException.class,
+                () -> azureGraphClient.getUserGroups(accessToken)
+        );
 
         // then
         assertThat(invalidContentProcessException.getMessage()).isEqualTo("Error while processing server response");
@@ -143,17 +161,21 @@ class AzureGraphClientTest {
                 any(String.class),
                 any(HttpMethod.class),
                 any(HttpEntity.class),
-                any(Class.class)
+                eq(String.class)
         )).thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
 
         // when
-        var invalidTokenException = assertThrows(InvalidTokenException.class, () -> azureGraphClient.getUserGroups(accessToken));
+        var invalidTokenException = assertThrows(
+                InvalidTokenException.class,
+                () -> azureGraphClient.getUserGroups(accessToken)
+        );
 
         // then
         assertThat(invalidTokenException.getMessage()).isEqualTo("Error while getting user groups");
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void givenAValidAccessToken_whenGetUserEmail_thenReturnEmail() {
         // given
         var accessToken = "testAccessToken";
@@ -206,14 +228,15 @@ class AzureGraphClientTest {
     }
 
     @Test
-    void givenAnAzureClient_whenGetDataHubGroups_AndAzureRejectsWithAnException_thenFallbackGroupsIsReturned() {
+    void givenAzureRejectsDataHubGroups_whenGetDataHubGroups_thenFallbackGroupIsReturned() {
         // given
         var dataHubGroupId = "testDataHubGroupId";
         var url = "https://graph.microsoft.com/v1.0/servicePrincipals/" + dataHubGroupId + "/appRoleAssignedTo?$top=10";
 
         ReflectionTestUtils.setField(azureGraphClient, "dataHubGroupId", dataHubGroupId);
 
-        when(restTemplate.exchange(eq(url), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class))).thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
+        when(restTemplate.exchange(eq(url), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
+                .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
 
         // when
         var dataHubGroups = azureGraphClient.getDataHubGroups();
@@ -228,9 +251,11 @@ class AzureGraphClientTest {
         var response = "Response entity body";
         var entity = new ResponseEntity<>(response, HttpStatus.OK);
         var displayNameJsonNode = mock(JsonNode.class);
+        @SuppressWarnings("unchecked")
         Iterator<JsonNode> jsonNodeIterator = mock(Iterator.class);
 
-        when(restTemplate.exchange(eq(url), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class))).thenReturn(entity);
+        when(restTemplate.exchange(eq(url), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
+                .thenReturn(entity);
         when(mapper.readTree(response)).thenReturn(jsonNode);
         when(jsonNode.iterator()).thenReturn(jsonNodeIterator);
         when(jsonNodeIterator.hasNext()).thenReturn(true, false);

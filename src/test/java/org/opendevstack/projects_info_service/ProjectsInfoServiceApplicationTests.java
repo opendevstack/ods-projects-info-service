@@ -8,7 +8,7 @@ class ProjectsInfoServiceApplicationTests {
 
 	@Test
 	void contextLoads() {
-		// Empty test to check if the Spring application context loads successfully
+		// Smoke test: verifies that the Spring application context starts successfully.
 	}
 
 }

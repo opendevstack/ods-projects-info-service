@@ -24,17 +24,16 @@ import org.opendevstack.projects_info_service.server.service.MocksService;
 import org.opendevstack.projects_info_service.server.service.OpenShiftProjectService;
 import org.opendevstack.projects_info_service.server.service.PlatformService;
 
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.lang.reflect.Method;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
-import org.mockito.ArgumentCaptor;
-import java.util.Set;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ProjectsFacadeTest {
@@ -78,7 +77,10 @@ class ProjectsFacadeTest {
                 new OpenshiftProjectCluster("devstack", "us-test")
         );
 
-        var edpProjects = List.of(new ProjectInfo("ATLAS", Collections.emptyList()), new ProjectInfo("EDPP", Collections.emptyList()));
+        var edpProjects = List.of(
+                new ProjectInfo("ATLAS", Collections.emptyList()),
+                new ProjectInfo("EDPP", Collections.emptyList())
+        );
         var mockProjectKey = "MockProject";
         var mockProjects = Map.of(mockProjectKey, new ProjectInfo(mockProjectKey, Collections.emptyList()));
 
@@ -102,7 +104,7 @@ class ProjectsFacadeTest {
     }
 
     @Test
-    void givenAnAzureToken_andThereAreProjectsWithClusters_andThereAreMocksForsomeOfTheProjects_whenGetProjects_thenReturnListOfProjects_andMockClustersOverrideEdpOnes() {
+    void givenAzureTokenAndMockOverrides_whenGetProjects_thenMockClustersOverrideEdpOnes() {
         // given
         var userEmail = "pepito";
         var accessToken = "sample";
@@ -121,8 +123,10 @@ class ProjectsFacadeTest {
         when(azureGraphClient.getUserEmail(graphToken)).thenReturn(userEmail);
         when(azureGraphClient.getUserGroups(graphToken)).thenReturn(azureGroups);
         when(openShiftProjectService.fetchProjects()).thenReturn(edpProjectsInfo);
-        when(edpProjectsService.filterProjects(azureGroups, edpProjectsInfo)).thenReturn(new HashSet<>(edpProjects));
-        when(mocksService.getProjectsAndClusters(userEmail)).thenReturn(Map.of("ATLAS", new ProjectInfo("ATLAS", List.of("us-test"))));
+        when(edpProjectsService.filterProjects(azureGroups, edpProjectsInfo))
+                .thenReturn(new HashSet<>(edpProjects));
+        when(mocksService.getProjectsAndClusters(userEmail))
+                .thenReturn(Map.of("ATLAS", new ProjectInfo("ATLAS", List.of("us-test"))));
 
         // when
         Map<String, ProjectInfo> projects = projectsFacade.getProjects(accessToken);
@@ -212,8 +216,10 @@ class ProjectsFacadeTest {
         when(mocksService.getDefaultProjectsAndClusters()).thenReturn(Map.of(projectKey, projectInfo));
 
         when(platformService.getDisabledPlatforms(projectKey)).thenReturn(disabledPlatforms);
-        when(platformService.getSections(projectKey, projectInfo.getClusters().getFirst())).thenReturn(expectedSections);
-        when(platformService.getPlatforms(projectKey, projectInfo.getClusters().getFirst())).thenReturn(PlatformsWithTitleMother.of());
+        when(platformService.getSections(projectKey, projectInfo.getClusters().getFirst()))
+                .thenReturn(expectedSections);
+        when(platformService.getPlatforms(projectKey, projectInfo.getClusters().getFirst()))
+                .thenReturn(PlatformsWithTitleMother.of());
 
         // when
         ProjectPlatforms result = projectsFacade.getProjectPlatforms(projectKey);
@@ -232,7 +238,7 @@ class ProjectsFacadeTest {
     }
 
     @Test
-    void givenAProjectKey_andProjectExistsInOpenshift_andThereAreMockedProjectWithSameKey_whenGetProjectPlatforms_ThenOpenshiftProjectClustersArePrioritized() {
+    void givenProjectInOpenShiftAndMocks_whenGetProjectPlatforms_thenOpenShiftClustersWin() {
         // given
         var openshiftProjectCluster = OpenshiftProjectClusterMother.of();
         var projectKey = openshiftProjectCluster.getProject();
@@ -401,11 +407,7 @@ class ProjectsFacadeTest {
         projectsFacade.getProjects(accessToken);
 
         // then: groupValidatorService.validate should be invoked with concatenated, trimmed and non-blank groups
-        ArgumentCaptor<Set> captor = ArgumentCaptor.forClass(Set.class);
-        verify(groupValidatorService).validate(captor.capture());
-
-        var captured = captor.getValue();
-        assertThat(captured).containsExactlyInAnyOrder("groupA", "azureOnly", "mock1", "mock2");
+        verify(groupValidatorService).validate(Set.of("groupA", "azureOnly", "mock1", "mock2"));
     }
 
     @Test
@@ -473,7 +475,7 @@ class ProjectsFacadeTest {
     }
 
     @Test
-    void givenClusterListWithMultipleElements_whenOrderClusters_thenReturnClustersInAlphabeticalOrder() throws Exception {
+    void givenMultipleClusters_whenOrderClusters_thenReturnAlphabeticalOrder() throws Exception {
         // given
         var clusters = List.of("alpha", "zulu", "bravo", "charlie");
 
@@ -485,7 +487,7 @@ class ProjectsFacadeTest {
 
         // then
         assertThat(result).isNotNull()
-                .containsExactly("alpha", "bravo", "charlie", "zulu" );
+                .containsExactly("alpha", "bravo", "charlie", "zulu");
     }
 
     @Test

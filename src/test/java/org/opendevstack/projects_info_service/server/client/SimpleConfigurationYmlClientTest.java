@@ -7,11 +7,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.opendevstack.projects_info_service.configuration.ConfigurationRepositoryConfiguration;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class SimpleConfigurationYmlClientTest {
@@ -31,6 +38,7 @@ class SimpleConfigurationYmlClientTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void givenYamlResponse_whenFetch_thenItMapsYamlAndSendsBearerAuth() {
         // given
         String url = "http://example.com/config.yml";

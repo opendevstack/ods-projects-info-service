@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<code_scheme name="ProjectsInfoService" version="173">
+  <!--
+    Shared IntelliJ IDEA code style scheme for this repository.
+    If formatting conventions change, update this file together with the README.
+  -->
+  <option name="RIGHT_MARGIN" value="120" />
+  <option name="CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND" value="99" />
+  <option name="NAMES_COUNT_TO_USE_IMPORT_ON_DEMAND" value="99" />
+
+  <JavaCodeStyleSettings>
+    <option name="CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND" value="99" />
+    <option name="NAMES_COUNT_TO_USE_IMPORT_ON_DEMAND" value="99" />
+    <option name="LAYOUT_STATIC_IMPORTS_SEPARATELY" value="true" />
+  </JavaCodeStyleSettings>
+
+  <codeStyleSettings language="JAVA">
+    <option name="RIGHT_MARGIN" value="120" />
+    <option name="INDENT_SIZE" value="4" />
+    <option name="TAB_SIZE" value="4" />
+    <option name="CONTINUATION_INDENT_SIZE" value="8" />
+    <option name="KEEP_LINE_BREAKS" value="true" />
+    <option name="KEEP_FIRST_COLUMN_COMMENT" value="false" />
+    <option name="LINE_COMMENT_AT_FIRST_COLUMN" value="false" />
+    <option name="BLOCK_COMMENT_AT_FIRST_COLUMN" value="false" />
+    <option name="WRAP_ON_TYPING" value="1" />
+    <option name="ALIGN_MULTILINE_PARAMETERS" value="false" />
+    <option name="ALIGN_MULTILINE_METHOD_BRACKETS" value="false" />
+    <option name="ALIGN_MULTILINE_CHAINED_METHODS" value="false" />
+    <option name="METHOD_PARAMETERS_WRAP" value="1" />
+    <option name="CALL_PARAMETERS_WRAP" value="1" />
+    <option name="METHOD_CALL_CHAIN_WRAP" value="1" />
+    <option name="PREFER_PARAMETERS_WRAP" value="false" />
+    <option name="SPACE_AFTER_COMMA" value="true" />
+    <option name="SPACE_BEFORE_METHOD_PARENTHESES" value="false" />
+    <option name="SPACE_WITHIN_METHOD_CALL_PARENTHESES" value="false" />
+    <option name="SPACE_WITHIN_METHOD_PARENTHESES" value="false" />
+    <option name="SPACE_WITHIN_BRACES" value="false" />
+    <option name="BLANK_LINES_AROUND_METHOD" value="1" />
+    <option name="BLANK_LINES_AROUND_CLASS" value="1" />
+    <option name="BLANK_LINES_AROUND_FIELD" value="1" />
+    <option name="BLANK_LINES_AFTER_PACKAGE" value="1" />
+    <option name="BLANK_LINES_AFTER_IMPORTS" value="1" />
+  </codeStyleSettings>
+</code_scheme>
