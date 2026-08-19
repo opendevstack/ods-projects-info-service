@@ -32,7 +32,7 @@ class ProjectsApiControllerTest {
 
     @Test
     void givenAToken_whenGetProjects_thenReturnProjectsList() {
-        // Given
+        // given
         String token = "token";
         Map<String, ProjectInfo> projects = new HashMap<>();
         projects.put("project1", new ProjectInfo());
@@ -52,7 +52,7 @@ class ProjectsApiControllerTest {
 
     @Test
     void givenATokenAndProjectKey_whenGetProjectClusters_thenReturnProjectInfo() {
-        // Given
+        // given
         String token = "token";
         Map<String, ProjectInfo> projects = new HashMap<>();
         var projectInfo = new ProjectInfo();
@@ -74,7 +74,7 @@ class ProjectsApiControllerTest {
 
     @Test
     void givenATokenAndProjectKey_whenGetProjectClusters_andProjectKeyDoesNotExist_thenReturnNotFound() {
-        // Given
+        // given
         String token = "token";
         Map<String, ProjectInfo> projects = new HashMap<>();
         var projectInfo = new ProjectInfo();
@@ -94,7 +94,7 @@ class ProjectsApiControllerTest {
 
     @Test
     void givenATokenAndProjectKey_whenGetProjectPlatforms_thenReturnPlatforms() {
-        // Given
+        // given
         String projectKey = "project1";
 
         var projectPlatforms = ProjectPlatformsMother.of();

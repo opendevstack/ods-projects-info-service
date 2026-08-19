@@ -12,11 +12,12 @@ class MocksServiceTest {
 
     @Test
     void givenAMockConfiguration_whenGetProjectsAndClusters_thenReturnExpectedProjects() {
-        // Given
+        // given
         MockConfiguration mockConfiguration = new MockConfiguration();
         mockConfiguration.setClusters(List.of("US-TEST", "eu", "CN"));
         mockConfiguration.setDefaultProjects(List.of("DEFAULT1", "DEFAULT2:cn"));
-        mockConfiguration.setUsersProjects("{PEPE:[PROJECT-3:EU2, PROJECT-4:US-TEST, PROJECT-6]; PPT:[PROJECT-3, PROJECT-5]}");
+        mockConfiguration
+                .setUsersProjects("{PEPE:[PROJECT-3:EU2, PROJECT-4:US-TEST, PROJECT-6]; PPT:[PROJECT-3, PROJECT-5]}");
 
         var userEmail = "PEPE";
 
@@ -26,8 +27,9 @@ class MocksServiceTest {
         var projects = mocksService.getProjectsAndClusters(userEmail);
 
         // then
-        assertThat(projects.size()).isEqualTo(5);
-        assertThat(projects.keySet()).containsExactlyInAnyOrder("DEFAULT1", "DEFAULT2", "PROJECT-3", "PROJECT-4", "PROJECT-6");
+        assertThat(projects).hasSize(5);
+        assertThat(projects.keySet())
+                .containsExactlyInAnyOrder("DEFAULT1", "DEFAULT2", "PROJECT-3", "PROJECT-4", "PROJECT-6");
         assertThat(projects.get("DEFAULT1").getClusters()).containsExactlyInAnyOrder("US-TEST", "eu", "CN");
         assertThat(projects.get("DEFAULT2").getClusters()).containsExactlyInAnyOrder("cn");
         assertThat(projects.get("PROJECT-3").getClusters()).containsExactlyInAnyOrder("EU2");
@@ -37,7 +39,7 @@ class MocksServiceTest {
 
     @Test
     void givenNoMockConfiguredProjects_whenGetDefaultProjectsAndClusters_thenReturnEmptyListOfProjects() {
-        // Given
+        // given
         MockConfiguration mockConfiguration = new MockConfiguration();
         // Mind that Spring SPEL initialize to empty string, not null
         mockConfiguration.setClusters(List.of(""));
@@ -48,10 +50,10 @@ class MocksServiceTest {
 
         MocksService mocksService = new MocksService(mockConfiguration);
 
-        // When
+        // when
         var projects = mocksService.getProjectsAndClusters(userEmail);
 
-        // Then
+        // then
         assertThat(projects).isEmpty();
     }
 
@@ -65,7 +67,10 @@ class MocksServiceTest {
         mockConfiguration.setClusters(List.of("US-TEST", "eu", "CN"));
         mockConfiguration.setDefaultProjects(List.of("DEFAULT1", "DEFAULT2:cn"));
         mockConfiguration.setUsersProjects("{PEPE:[PROJECT-3, PROJECT-4:US-TEST]; PPT:[PROJECT-3, PROJECT-5]}");
-        mockConfiguration.setUsersGroups("{" + userEmail + ":[GROUP-1, BI-AS-ATLASSIAN-P-DEVSTACK-TEAM]; PPT:[BI-AS-ATLASSIAN-P-DEVSTACK-STAKEHOLDER]}");
+        var usersGroupsConfig = "{" + userEmail
+                + ":[GROUP-1, BI-AS-ATLASSIAN-P-DEVSTACK-TEAM];"
+                + " PPT:[BI-AS-ATLASSIAN-P-DEVSTACK-STAKEHOLDER]}";
+        mockConfiguration.setUsersGroups(usersGroupsConfig);
 
 
         MocksService mocksService = new MocksService(mockConfiguration);

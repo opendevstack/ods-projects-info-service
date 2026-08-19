@@ -24,7 +24,9 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -120,14 +122,18 @@ public class OpenshiftProjectServiceTest {
 
         ResponseEntity<ProjectList> responseEntity = new ResponseEntity<>(projectList, HttpStatus.OK);
 
-        when(mockRestTemplate.exchange(anyString(), any(HttpMethod.class), any(HttpEntity.class), eq(ProjectList.class)))
+        when(mockRestTemplate.exchange(
+                anyString(),
+                any(HttpMethod.class),
+                any(HttpEntity.class),
+                eq(ProjectList.class)
+        ))
                 .thenReturn(responseEntity);
 
         List<OpenshiftProjectCluster> result = openshiftProjectService.fetchProjects();
 
         assertEquals(4, result.size());
-        result.forEach(projectCluster -> {
-            assertEquals(projectCluster.getProject(), projectCluster.getProject().toUpperCase());
-        });
+        result.forEach(projectCluster ->
+                assertEquals(projectCluster.getProject(), projectCluster.getProject().toUpperCase()));
     }
 }

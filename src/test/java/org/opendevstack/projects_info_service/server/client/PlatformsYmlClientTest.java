@@ -13,7 +13,8 @@ import org.opendevstack.projects_info_service.server.model.PlatformsYml;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class PlatformsYmlClientTest {
@@ -40,7 +41,7 @@ class PlatformsYmlClientTest {
         List<PlatformSection> result = platformsYmlClient.fetchSectionsFromYaml(url);
 
         // then
-        assertThat(result).isNotNull().hasSize(2);
+        assertThat(result).hasSize(2);
         assertThat(result).isEqualTo(sections);
 
         verify(simpleConfigurationYmlClient).fetch(url, PlatformsYml.class);

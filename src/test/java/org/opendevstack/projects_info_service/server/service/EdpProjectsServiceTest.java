@@ -27,17 +27,24 @@ class EdpProjectsServiceTest {
 
     @Test
     void givenASetOfAzureGroups_andOpenshiftProjects_whenFilterProjects_thenReturnFilteredSet() {
-        // Given
-        Set<String> azureGroups = Set.of("MY-PROJECT-PREFIX-EDPC-TEAM", "MY-PROJECT-PREFIX-DEVSTACK-MANAGER", "MY-PROJECT-PREFIX-OTHERPROJECT-OTHERGROUP", "UNRELATED-GROUP");
+        // given
+        Set<String> azureGroups = Set.of(
+                "MY-PROJECT-PREFIX-EDPC-TEAM",
+                "MY-PROJECT-PREFIX-DEVSTACK-MANAGER",
+                "MY-PROJECT-PREFIX-OTHERPROJECT-OTHERGROUP",
+                "UNRELATED-GROUP"
+        );
         List<OpenshiftProjectCluster> openshiftProjectClusters = List.of(
                 new OpenshiftProjectCluster("edpc","eu_dev"),
                 new OpenshiftProjectCluster("devstack","us_test"));
 
-        // When
+        // when
         Set<ProjectInfo> filteredProjects = edpProjectsService.filterProjects(azureGroups, openshiftProjectClusters);
 
-        // Then
+        // then
         assertThat(filteredProjects).hasSize(2);
-        assertThat(filteredProjects).extracting(ProjectInfo::getProjectKey).containsExactlyInAnyOrder("edpc", "devstack");
+        assertThat(filteredProjects)
+                .extracting(ProjectInfo::getProjectKey)
+                .containsExactlyInAnyOrder("edpc", "devstack");
     }
 }
