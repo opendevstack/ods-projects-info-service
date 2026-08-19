@@ -4,6 +4,29 @@ This repository contains the source code for the Projects Info Service backend s
 
 Also, under the "scripts" directory, the required scripts and OpenAPI specifications required for generating the required API REST clients and server.
 
+## IntelliJ code style and Checkstyle
+
+<!-- Future steps: once the team agrees on a single baseline, we can extend this section with a stricter Checkstyle setup and IDE-specific exports for other editors. -->
+
+Checkstyle is a static analysis tool that checks Java source code against a set of style rules. In practice, it helps keep indentation, imports, wrapping, naming, and brace placement consistent across the team.
+
+This repository currently keeps an IntelliJ formatting reference in `codeStyles/intellij/codeStyles.xml`. It can be imported into IntelliJ IDEA if needed, but there is no enforced Checkstyle setup yet.
+
+The `codeStyles/` folder is intended to host IDE-specific code style exports in the future too, for example:
+- `codeStyles/eclipse/`
+- `codeStyles/visualStudio/`
+
+### Future steps: import the IntelliJ scheme
+
+- Open the project in IntelliJ IDEA.
+- Go to `Settings` / `Preferences` > `Editor` > `Code Style`.
+- Click the gear icon next to the current scheme selector.
+- Choose `Import Scheme...` > `IntelliJ IDEA code style XML`.
+- Select `codeStyles/intellij/codeStyles.xml` from this repository.
+- Apply the imported scheme and set it as the current scheme for this project.
+
+If you update the formatting rules later, please update both the XML scheme and this documentation together.
+
 ## 1. Create a Spring Boot launch configuration
 
 - Go to the main() method for the application: `org.opendevstack.projects_info_service.ProjectsInfoServiceApplication.main()`
