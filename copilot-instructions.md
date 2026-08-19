@@ -6,12 +6,13 @@ If the project conventions change, update this document first so future edits st
 -->
 
 ## Project snapshot
-- Java 21 / Spring Boot 3.5.x application
-- Gradle build with OpenAPI-generated sources
-- Main package: `org.opendevstack.projects_info_service`
-- Shared IntelliJ code style scheme: `codeStyles/intellij/codeStyles.xml`
-- Max line length: 120 characters
-- `codeStyles/` is reserved for IDE-specific code style exports such as `codeStyles/eclipse/` or `codeStyles/visualStudio/`
+- Java 21 / Spring Boot 3.5.x application.
+- Gradle build with OpenAPI-generated sources.
+- Main package: `org.opendevstack.projects_info_service`.
+- Shared IntelliJ code style scheme: `codeStyles/intellij/codeStyles.xml`.
+- Max line length: 120 characters.
+- `codeStyles/` is reserved for IDE-specific code style exports such as `codeStyles/eclipse/` or
+  `codeStyles/visualStudio/`.
 
 ## Before changing code
 - Read this file first.
@@ -30,11 +31,30 @@ If the project conventions change, update this document first so future edits st
 - Use descriptive names for variables, methods, and tests.
 - Follow existing line wrapping in surrounding code instead of reformatting unrelated lines.
 
+## Architecture conventions
+- Keep package boundaries clear: API layer, service layer, and integration/repository layer should not leak concerns.
+- Keep controllers thin: request/response mapping and validation in controllers, business logic in services.
+- Create facades in case of need.
+- Prefer constructor injection; avoid field injection.
+- Keep DTOs and domain/service models separated when contracts diverge.
+- Isolate external system details behind dedicated client/service classes.
+- Reuse existing error-handling patterns (exception types, mappers, and status translation).
+
+## API rules
+- Treat OpenAPI contracts as source of truth for public API behavior.
+- Use OpenAPI definitions to generate clients, do not create custom clients.
+- Keep request/response schemas backward compatible unless the change is explicitly versioned.
+- Validate all incoming inputs and return consistent error responses.
+- Do not expose internal exception details, stack traces, tokens, credentials, or infrastructure metadata in API output.
+- When changing endpoints, update related OpenAPI definitions and contract tests in the same change.
+
 ## Common code patterns
 - Lombok is used heavily for boilerplate reduction.
 - Builder style is common for DTO/model construction.
 - Streams, lambdas, and `Optional` are used frequently.
 - Logging uses SLF4J.
+- Always use parameterized logging (for example, `log.info("Project {} loaded", projectId)`).
+- NEVER log secrets or sensitive values (tokens, passwords, API keys, auth headers, private keys, PII).
 - Preserve current null-handling behavior unless a bug fix requires a change.
 
 ## Test conventions
@@ -42,7 +62,7 @@ If the project conventions change, update this document first so future edits st
 - Mocking: Mockito with `@ExtendWith(MockitoExtension.class)`.
 - Assertions: AssertJ.
 - Test naming commonly follows `given...when...then...` style.
-- Test body commonly contains `\\given \\when \\then...` blocks.
+- Test body commonly contains `// given // when // then` blocks.
 - Test data helpers often use the `Mother` pattern.
 - Keep tests focused on behavior and readable without extra abstraction.
 
