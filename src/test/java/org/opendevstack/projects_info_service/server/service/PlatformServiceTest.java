@@ -1,8 +1,14 @@
 package org.opendevstack.projects_info_service.server.service;
 
+import org.apache.commons.lang3.tuple.Pair;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.opendevstack.projects_info_service.configuration.PlatformsConfiguration;
 import org.opendevstack.projects_info_service.configuration.ProjectFilterConfiguration;
-import org.opendevstack.projects_info_service.server.client.AzureGraphClient;
 import org.opendevstack.projects_info_service.server.client.PlatformsYmlClient;
 import org.opendevstack.projects_info_service.server.client.TestingHubClient;
 import org.opendevstack.projects_info_service.server.dto.LinkMother;
@@ -12,13 +18,6 @@ import org.opendevstack.projects_info_service.server.model.PlatformLinkMother;
 import org.opendevstack.projects_info_service.server.model.PlatformSection;
 import org.opendevstack.projects_info_service.server.model.TestingHubProject;
 import org.opendevstack.projects_info_service.server.model.TestingHubProjectMother;
-import org.apache.commons.lang3.tuple.Pair;
-import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Map;
@@ -37,8 +36,6 @@ class PlatformServiceTest {
     ProjectFilterConfiguration projectFilterConfiguration;
     @Mock
     PlatformsYmlClient platformsYmlClient;
-    @Mock
-    AzureGraphClient azureGraphClient;
     @Mock
     TestingHubClient testingHubClient;
 
