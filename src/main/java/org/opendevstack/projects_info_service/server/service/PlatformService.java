@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.opendevstack.projects_info_service.configuration.PlatformsConfiguration;
 import org.opendevstack.projects_info_service.configuration.ProjectFilterConfiguration;
-import org.opendevstack.projects_info_service.server.client.AzureGraphClient;
 import org.opendevstack.projects_info_service.server.client.PlatformsYmlClient;
 import org.opendevstack.projects_info_service.server.client.TestingHubClient;
 import org.opendevstack.projects_info_service.server.dto.Link;
@@ -39,7 +38,6 @@ public class PlatformService {
     PlatformsConfiguration platformsConfiguration;
     ProjectFilterConfiguration projectFilterConfiguration;
     PlatformsYmlClient platformsYmlClient;
-    AzureGraphClient azureGraphClient;
     TestingHubClient testingHubClient;
 
     public PlatformsWithTitle getPlatforms(String projectKey, String cluster) {
@@ -77,7 +75,7 @@ public class PlatformService {
 
     private String resolvePlatformUrl(String urlTemplate, String projectKey) {
         if (urlTemplate.contains(TESTING_HUB_PROJECT_TOKEN)) {
-            // TODO: Change to getAllProjects TestingHub notifies the changes on their API.
+            // TBD: Change to getAllProjects TestingHub notifies the changes on their API.
             Set<TestingHubProject> testingHubProjects = testingHubClient.getDefaultProjects();
             String testingHubValue = testingHubProjects.stream()
                     .filter(project -> project.getName().equals(projectKey))
@@ -112,9 +110,8 @@ public class PlatformService {
     private List<String> addDisabledPlatformIfDataHubIsDisabled(String projectKey) {
         List<String> disabledPlatforms = new ArrayList<>();
 
-        // FIXME: As we know we do not have configured yet Azure Token, we default to fallback group
-        // This should be updated in the future (uncomment line below) when the token is set
-        //var dataHubGroups = azureGraphClient.getDataHubGroups();
+        // TBD: As we know we do not have configured yet Azure Token, we default to fallback group
+        // This should be updated in the future
         var dataHubGroups = Set.of(UNABLE_TO_GET_GROUPS_FALLBACK_GROUP);
 
         var isDataHubEnabled = checkIfProjectIsEnabledForGroups(projectKey, dataHubGroups);
@@ -133,7 +130,7 @@ public class PlatformService {
     private List<String> addDisabledPlatformIfTestingHubIsDisabled(String projectKey) {
         List<String> disabledPlatforms = new ArrayList<>();
 
-        // TODO: replace this with the call to testingHubClient.getAllProjects when we get API credentials
+        // TBD: replace this with the call to testingHubClient.getAllProjects when we get API credentials
         var testingHubDefaultProjects = testingHubClient.getDefaultProjects();
 
         var isTestingHubEnabled = testingHubDefaultProjects.stream()
