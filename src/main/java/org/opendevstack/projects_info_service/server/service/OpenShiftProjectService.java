@@ -40,7 +40,7 @@ public class OpenShiftProjectService {
     public List<OpenshiftProjectCluster> fetchProjects() {
         final List<OpenshiftProjectCluster> result = new ArrayList<>();
 
-        openshiftClusterConfig.getClusters().forEach((cluster, clusterValues) -> {
+        openshiftClusterConfig.getClustersWithoutDisabled().forEach((cluster, clusterValues) -> {
             log.debug("Fetching projects for cluster: {}", cluster);
 
             final HttpHeaders headers = new HttpHeaders();

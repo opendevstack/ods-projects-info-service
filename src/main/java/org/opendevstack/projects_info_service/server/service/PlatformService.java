@@ -43,8 +43,8 @@ public class PlatformService {
     public PlatformsWithTitle getPlatforms(String projectKey, String cluster) {
         log.debug("Getting platform links for project {} and cluster {}.", projectKey, cluster);
 
-        if (platformsConfiguration.getClusters().containsKey(cluster)) {
-            var clusterConfigurationPath = platformsConfiguration.getClusters().get(cluster);
+        if (platformsConfiguration.getClustersWithoutDisabled().containsKey(cluster)) {
+            var clusterConfigurationPath = platformsConfiguration.getClustersWithoutDisabled().get(cluster);
             var url = platformsConfiguration.getBasePath() + clusterConfigurationPath;
 
             var titleAndPlatforms = platformsYmlClient.fetchPlatformsFromYaml(url);
@@ -67,7 +67,7 @@ public class PlatformService {
                     .build();
         } else {
             String errorMessage = "Cluster " + cluster + " is not configured. All valid clusters: " +
-                    platformsConfiguration.getClusters().keySet();
+                    platformsConfiguration.getClustersWithoutDisabled().keySet();
 
             throw new InvalidConfigurationException(errorMessage);
         }
@@ -150,8 +150,8 @@ public class PlatformService {
     public List<Section> getSections(String projectKey, String cluster) {
         log.debug("Getting sections for project {} and cluster {}.", projectKey, cluster);
 
-        if (platformsConfiguration.getClusters().containsKey(cluster)) {
-            var clusterConfigurationPath = platformsConfiguration.getClusters().get(cluster);
+        if (platformsConfiguration.getClustersWithoutDisabled().containsKey(cluster)) {
+            var clusterConfigurationPath = platformsConfiguration.getClustersWithoutDisabled().get(cluster);
             var url = platformsConfiguration.getBasePath() + clusterConfigurationPath;
 
             List<PlatformSection> sections = platformsYmlClient.fetchSectionsFromYaml(url);
@@ -165,7 +165,7 @@ public class PlatformService {
                     .toList();
         } else {
             String errorMessage = "Cluster " + cluster + " is not configured. All valid clusters: " +
-                    platformsConfiguration.getClusters().keySet();
+                    platformsConfiguration.getClustersWithoutDisabled().keySet();
 
             throw new InvalidConfigurationException(errorMessage);
         }
