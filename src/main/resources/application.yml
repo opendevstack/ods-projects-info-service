@@ -48,7 +48,7 @@ project:
   filter:
     project-roles-group-prefix: BI-AS-ATLASSIAN-P
     # Properties to be used as lists cannot have leading or trailing blanks.
-    project-roles-group-suffixes: TEAM,MANAGER,STAKEHOLDER
+    project-roles-group-suffixes: ${PROJECT_ROLES_GROUP_SUFFIXES}
 
 azure:
   access-token: ${AZURE_ACCESS_TOKEN}
@@ -171,8 +171,4 @@ security:
   group-validation:
     allowed-prefixes:
       - "BI-AS-ATLASSIAN"
-    allowed-suffixes:
-      - "STAKEHOLDER"
-      - "TEAM"
-      - "MANAGER"
-      - "VM"
+    allowed-suffixes: ${PROJECT_ROLES_GROUP_ALLOWED_SUFFIXES}
