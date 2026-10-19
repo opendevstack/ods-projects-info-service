@@ -3,6 +3,7 @@ package org.opendevstack.projects_info_service.configuration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -23,7 +24,7 @@ public class GroupValidationPropertiesConfiguration {
         return allowedSuffixes;
     }
 
-    public void setAllowedSuffixes(List<String> allowedSuffixes) {
-        this.allowedSuffixes = allowedSuffixes;
+    public void setAllowedSuffixes(String allowedSuffixes) {
+        this.allowedSuffixes = Arrays.asList(allowedSuffixes.split(","));
     }
 }

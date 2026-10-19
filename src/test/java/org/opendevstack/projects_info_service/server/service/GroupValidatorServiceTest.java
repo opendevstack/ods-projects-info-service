@@ -19,7 +19,7 @@ class GroupValidatorServiceTest {
     void setup() {
         GroupValidationPropertiesConfiguration props = new GroupValidationPropertiesConfiguration();
         props.setAllowedPrefixes(List.of("BI-AS-ATLASSIAN", "OTHER-PREFIX"));
-        props.setAllowedSuffixes(List.of("-STAKEHOLDER", "-TEAM", "-MANAGER", "-VM"));
+        props.setAllowedSuffixes("-STAKEHOLDER,-TEAM,-MANAGER,-VM");
 
         validator = new GroupValidatorService(props);
     }
