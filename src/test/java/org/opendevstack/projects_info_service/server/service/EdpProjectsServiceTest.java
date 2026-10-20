@@ -47,4 +47,33 @@ class EdpProjectsServiceTest {
                 .extracting(ProjectInfo::getProjectKey)
                 .containsExactlyInAnyOrder("edpc", "devstack");
     }
+
+    @Test
+    void givenSuffixesWithAndWithoutLeadingHyphen_whenFilterProjects_thenTrimAndRemoveSuffixes() {
+        // given
+        ProjectFilterConfiguration projectFilterConfiguration = new ProjectFilterConfiguration();
+        projectFilterConfiguration.setProjectRolesGroupPrefix("MY-PROJECT-PREFIX");
+        projectFilterConfiguration.setProjectRolesGroupSuffixes(List.of("TEAM", "-ADMIN"));
+
+        var service = new EdpProjectsService(projectFilterConfiguration);
+        Set<String> azureGroups = Set.of(
+                "MY-PROJECT-PREFIX-EDPC-TEAM",
+                "MY-PROJECT-PREFIX-DEVSTACK-ADMIN",
+                "MY-PROJECT-PREFIX-OTHERPROJECT-OTHERGROUP",
+                "UNRELATED-GROUP"
+        );
+        List<OpenshiftProjectCluster> openshiftProjectClusters = List.of(
+                new OpenshiftProjectCluster("edpc", "eu_dev"),
+                new OpenshiftProjectCluster("devstack", "us_test"),
+                new OpenshiftProjectCluster("ignored", "us_test")
+        );
+
+        // when
+        Set<ProjectInfo> filteredProjects = service.filterProjects(azureGroups, openshiftProjectClusters);
+
+        // then
+        assertThat(filteredProjects)
+                .extracting(ProjectInfo::getProjectKey)
+                .containsExactlyInAnyOrder("edpc", "devstack");
+    }
 }
