@@ -82,6 +82,9 @@ public class ProjectsFacade {
         var userEmail = azureGraphClient.getUserEmail(graphToken);
         var allEdpProjectsInfo = openShiftProjectService.fetchProjects();
 
+        log.trace("Azure user groups: {}", azureUserGroups);
+        log.trace("All edp projects info: {}", allEdpProjectsInfo);
+
         var edpProjects = edpProjectsService.filterProjects(azureUserGroups, allEdpProjectsInfo);
         log.info("EDP Projects found: {}", edpProjects);
 

@@ -29,6 +29,9 @@ public class ProjectsApiController implements ProjectsApi {
 
         var projects = new ArrayList<>(projectsFacade.getProjects(accessToken).keySet());
 
+        log.debug("Loaded projects. Size: {}", projects.size());
+        log.trace("Loaded projects: {}", projects);
+
         return ResponseEntity.ok(projects);
     }
 
@@ -38,6 +41,8 @@ public class ProjectsApiController implements ProjectsApi {
 
         var projects = projectsFacade.getProjects(accessToken);
         var project = projects.get(projectKey);
+
+        log.debug("Loaded project clusters for projectKey: {}. Project: {}", projectKey, project);
 
         if (project == null) {
             return ResponseEntity.notFound().build();
