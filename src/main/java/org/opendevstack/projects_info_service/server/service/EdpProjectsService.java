@@ -45,7 +45,8 @@ public class EdpProjectsService {
         String result = azureGroupName;
 
         for (String suffix : projectFilterConfiguration.getProjectRolesGroupSuffixes()) {
-            var suffixWithSeparator = "-" + suffix.trim();
+            var trimmedSuffix = suffix.trim();
+            var suffixWithSeparator = trimmedSuffix.startsWith("-") ? trimmedSuffix : "-" + trimmedSuffix;
 
             if (result.endsWith(suffixWithSeparator)) {
                 result = result.substring(0, result.length() - suffixWithSeparator.length());
