@@ -63,7 +63,7 @@ class PlatformServiceTest {
         var projectKey = "anyProjectKey";
 
         when(platformsConfiguration.getBasePath()).thenReturn("https://any-base-path/");
-        when(platformsConfiguration.getClusters()).thenReturn(
+        when(platformsConfiguration.getClustersWithoutDisabled()).thenReturn(
                 java.util.Map.of(
                         currentCluster, "path/to/platforms.yml"
                 )
@@ -131,7 +131,7 @@ class PlatformServiceTest {
         var basePath = "https://config.example.com/";
         var clusterPath = "clusters/test-cluster.yml";
 
-        when(platformsConfiguration.getClusters()).thenReturn(Map.of(cluster, clusterPath));
+        when(platformsConfiguration.getClustersWithoutDisabled()).thenReturn(Map.of(cluster, clusterPath));
         when(platformsConfiguration.getBasePath()).thenReturn(basePath);
 
         var jiraPlatform = createPlatform("jira", "JIRA", "https://jira.example.com");
@@ -166,7 +166,7 @@ class PlatformServiceTest {
         var basePath = "https://config.example.com/";
         var clusterPath = "clusters/test-cluster.yml";
 
-        when(platformsConfiguration.getClusters()).thenReturn(Map.of(cluster, clusterPath));
+        when(platformsConfiguration.getClustersWithoutDisabled()).thenReturn(Map.of(cluster, clusterPath));
         when(platformsConfiguration.getBasePath()).thenReturn(basePath);
 
         var testingHubPlatform = createPlatform("testinghub", "TestingHub", "https://testinghub.example.com/project/${testingHubProject}");
@@ -199,7 +199,7 @@ class PlatformServiceTest {
         var basePath = "https://config.example.com/";
         var clusterPath = "clusters/test-cluster.yml";
 
-        when(platformsConfiguration.getClusters()).thenReturn(Map.of(cluster, clusterPath));
+        when(platformsConfiguration.getClustersWithoutDisabled()).thenReturn(Map.of(cluster, clusterPath));
         when(platformsConfiguration.getBasePath()).thenReturn(basePath);
 
         var testingHubPlatform = createPlatform("testinghub", "TestingHub", "https://testinghub.example.com/project/${testingHubProject}");
@@ -229,7 +229,7 @@ class PlatformServiceTest {
         var basePath = "https://config.example.com/";
         var clusterPath = "clusters/test-cluster.yml";
 
-        when(platformsConfiguration.getClusters()).thenReturn(Map.of(cluster, clusterPath));
+        when(platformsConfiguration.getClustersWithoutDisabled()).thenReturn(Map.of(cluster, clusterPath));
         when(platformsConfiguration.getBasePath()).thenReturn(basePath);
 
         var platforms = Pair.of("title", List.of(
@@ -259,7 +259,7 @@ class PlatformServiceTest {
         var invalidCluster = "non-existent-cluster";
         var projectKey = "testProject";
 
-        when(platformsConfiguration.getClusters()).thenReturn(Map.of(
+        when(platformsConfiguration.getClustersWithoutDisabled()).thenReturn(Map.of(
                 "cluster1", "path1.yml",
                 "cluster2", "path2.yml"
         ));
@@ -280,7 +280,7 @@ class PlatformServiceTest {
         var basePath = "https://config.example.com/";
         var clusterPath = "clusters/test-cluster.yml";
 
-        when(platformsConfiguration.getClusters()).thenReturn(Map.of(cluster, clusterPath));
+        when(platformsConfiguration.getClustersWithoutDisabled()).thenReturn(Map.of(cluster, clusterPath));
         when(platformsConfiguration.getBasePath()).thenReturn(basePath);
         when(platformsYmlClient.fetchPlatformsFromYaml(basePath + clusterPath)).thenReturn(Pair.of("", List.of()));
 

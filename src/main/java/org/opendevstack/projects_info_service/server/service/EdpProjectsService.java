@@ -30,6 +30,7 @@ public class EdpProjectsService {
                 .collect(Collectors.toSet());
 
         log.debug("EDP Azure groups. Size: {}", edpAzureProjects.size());
+        log.trace("EDP Azure groups: {}", edpAzureProjects);
 
         var allEdpProjectsInfo = edpProjects.stream()
                 .filter(openshiftProjectCluster -> edpAzureProjects.contains(openshiftProjectCluster.getProject().toUpperCase()))
@@ -37,6 +38,7 @@ public class EdpProjectsService {
                 .collect(Collectors.toSet());
 
         log.debug("Loaded EDP projects that matches with azureGroup. Size: {}", allEdpProjectsInfo.size());
+        log.trace("Loaded EDP projects that matches with azureGroup: {}", allEdpProjectsInfo);
 
         return allEdpProjectsInfo;
     }
@@ -45,7 +47,8 @@ public class EdpProjectsService {
         String result = azureGroupName;
 
         for (String suffix : projectFilterConfiguration.getProjectRolesGroupSuffixes()) {
-            var suffixWithSeparator = "-" + suffix.trim();
+            var trimmedSuffix = suffix.trim();
+            var suffixWithSeparator = trimmedSuffix.startsWith("-") ? trimmedSuffix : "-" + trimmedSuffix;
 
             if (result.endsWith(suffixWithSeparator)) {
                 result = result.substring(0, result.length() - suffixWithSeparator.length());

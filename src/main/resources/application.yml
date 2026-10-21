@@ -124,6 +124,7 @@ custom:
 
 openshift:
   api:
+    disabled-cluster-token: ${DISABLED_CLUSTER_TOKEN}
     clusters:
       us-test:
         url: ${OPENSHIFT_US_TEST_URL}
@@ -151,6 +152,7 @@ configuration:
     bearer-token: ${PLATFORMS_BEARER_TOKEN}
 
 platforms:
+  disabled-cluster-token: ${DISABLED_CLUSTER_TOKEN}
   base-path: ${PLATFORMS_BASE_PATH}
   clusters:
     us-test: ${PLATFORMS_US_TEST_CLUSTER}

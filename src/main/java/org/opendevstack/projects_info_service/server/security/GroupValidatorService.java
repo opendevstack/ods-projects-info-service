@@ -18,7 +18,8 @@ public class GroupValidatorService {
     }
 
     public void validate(Set<String> azureUserGroups) throws UserNotInValidGroupException {
-        log.debug("Validating Azure User Groups. Groups: {}", azureUserGroups);
+        log.debug("Validating Azure User Groups for configuration. Groups: {}. Prefixes: {}. Suffixes: {}",
+                azureUserGroups, properties.getAllowedPrefixes(), properties.getAllowedSuffixes());
 
         boolean groupFound = azureUserGroups.stream().anyMatch(group ->
                 properties.getAllowedPrefixes().stream().anyMatch(group::startsWith) &&
